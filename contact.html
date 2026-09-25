@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex, nofollow" />
+<meta property="og:title" content="Contact &amp; rendez-vous | MODENA Advocatus · Créteil &amp; Pontault-Combault" />
+<meta property="og:url" content="https://steamcompt-del.github.io/modena-advocatus-maquette/contact.html" />
+<meta property="og:image" content="https://steamcompt-del.github.io/modena-advocatus-maquette/assets/design/hero-architecture.png" />
+<title>Contact &amp; rendez-vous | MODENA Advocatus · Créteil &amp; Pontault-Combault</title>
+<meta name="description" content="Contactez le cabinet MODENA à Créteil (4 rue des Archives) ou Pontault-Combault (19 rue Lucien Brunet). Téléphone, e-mail et prise de rendez-vous." />
+<link rel="icon" type="image/png" href="assets/img/logo-mark.png" />
+<link rel="stylesheet" href="css/style.css" />
+<link rel="stylesheet" href="assets/design/fonts.css" />
+<link rel="stylesheet" href="assets/design/caslon.css" />
+<link rel="stylesheet" href="css/design.css" />
+<link rel="stylesheet" href="css/cabinet.css" />
+</head>
+<body data-page="contact">
+
+<div id="site-header"></div>
+
+<main>
+<section class="masthead">
+  <div class="wrap">
+    <div class="masthead__frame">
+    <nav class="breadcrumb" aria-label="Fil d'Ariane"><a href="index.html">Accueil</a><span>/</span>Contact</nav>
+    <p class="masthead__kicker">Contact</p>
+    <h1>Nous contacter.</h1>
+    </div>
+    <p class="masthead__lead">Deux cabinets en Île-de-France. Accueil en français, anglais et russe. Appelez-nous, écrivez-nous, ou prenez rendez-vous.</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap contact">
+    <div class="offices">
+      <div class="office">
+        <h3>Cabinet de Créteil</h3>
+        <p>4, rue des Archives, 94000 Créteil</p>
+        <p class="office__hours">Adresse de correspondance · Métro ligne 8, Créteil Préfecture · Parking de la Brèche (gratuit 3 h)</p>
+        <div class="office__lines">
+          <a href="tel:+33143999792">01 43 99 97 92</a>
+          <a class="office__maps" href="https://www.google.com/maps/search/?api=1&amp;query=4+rue+des+Archives+94000+Créteil" target="_blank" rel="noopener">Voir sur Google Maps</a>
+        </div>
+      </div>
+
+      <div class="office">
+        <h3>Cabinet de Pontault-Combault</h3>
+        <p>19, rue Lucien Brunet, 77340 Pontault-Combault</p>
+        <div class="office__lines">
+          <a href="tel:+33170335016">01 70 33 50 16</a>
+          <a class="office__maps" href="https://www.google.com/maps/search/?api=1&amp;query=19+rue+Lucien+Brunet+77340+Pontault-Combault" target="_blank" rel="noopener">Voir sur Google Maps</a>
+        </div>
+      </div>
+
+      <div class="office">
+        <h3>Écrire &amp; horaires</h3>
+        <div class="office__lines">
+          <a href="mailto:contact@avocatsmodena.fr">contact@avocatsmodena.fr</a>
+          <span class="office__hours">Du lundi au vendredi, 9 h – 19 h</span>
+        </div>
+      </div>
+    </div>
+
+    <form class="contact-form" id="contactForm" novalidate>
+      <h2 class="contact-form__title">Écrire au cabinet</h2>
+      <p class="contact-form__intro">Ce formulaire ouvre votre logiciel de messagerie avec un e-mail pré-rempli, prêt à nous être envoyé. Vous pouvez aussi nous écrire directement à contact@avocatsmodena.fr.</p>
+      <div class="field">
+        <label for="cf-name">Nom &amp; prénom</label>
+        <input id="cf-name" name="name" type="text" required placeholder="Votre nom" />
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="cf-email">E-mail</label>
+          <input id="cf-email" name="email" type="email" required placeholder="vous@email.fr" />
+        </div>
+        <div class="field">
+          <label for="cf-phone">Téléphone</label>
+          <input id="cf-phone" name="phone" type="tel" placeholder="06 00 00 00 00" />
+        </div>
+      </div>
+      <div class="field">
+        <label for="cf-subject">Domaine concerné</label>
+        <select id="cf-subject" name="subject">
+          <option>Dommage corporel</option>
+          <option>Droit des étrangers &amp; nationalité</option>
+          <option>Droit du travail</option>
+          <option>Droit immobilier</option>
+          <option>Autre / je ne sais pas</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="cf-msg">Votre message</label>
+        <textarea id="cf-msg" name="message" rows="5" required placeholder="Décrivez brièvement votre situation…"></textarea>
+      </div>
+      <button type="submit" class="btn">Écrire par e-mail</button>
+      <p class="form-note">Vos informations restent confidentielles et couvertes par le secret professionnel. Ce formulaire n'enregistre rien sur le site : il prépare simplement un e-mail dans votre messagerie.</p>
+    </form>
+  </div>
+</section>
+</main>
+
+<div id="site-footer"></div>
+
+<script src="js/main.js"></script>
+</body>
+</html>

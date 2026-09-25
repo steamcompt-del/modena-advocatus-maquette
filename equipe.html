@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex, nofollow" />
+<meta property="og:title" content="L'équipe — Avocats &amp; juristes | MODENA Advocatus" />
+<meta property="og:url" content="https://steamcompt-del.github.io/modena-advocatus-maquette/equipe.html" />
+<meta property="og:image" content="https://steamcompt-del.github.io/modena-advocatus-maquette/assets/design/hero-architecture.png" />
+<title>L'équipe — Avocats &amp; juristes | MODENA Advocatus</title>
+<meta name="description" content="L'équipe du cabinet MODENA : quatre avocats associés, une juriste et une assistante juridique, à Créteil et Pontault-Combault." />
+<link rel="icon" type="image/png" href="assets/img/logo-mark.png" />
+<link rel="stylesheet" href="css/style.css" />
+<link rel="stylesheet" href="assets/design/fonts.css" />
+<link rel="stylesheet" href="assets/design/caslon.css" />
+<link rel="stylesheet" href="css/design.css" />
+<link rel="stylesheet" href="css/team-portraits.css" />
+<link rel="stylesheet" href="css/cabinet.css" />
+</head>
+<body data-page="equipe">
+
+<div id="site-header"></div>
+
+<main>
+<section class="masthead">
+  <div class="wrap">
+    <div class="masthead__frame">
+    <nav class="breadcrumb" aria-label="Fil d'Ariane"><a href="index.html">Accueil</a><span>/</span>L'équipe</nav>
+    <p class="masthead__kicker">L'équipe</p>
+    <h1>Quatre avocats, une juriste, une assistante juridique.</h1>
+    </div>
+    <p class="masthead__lead">Chaque dossier est suivi par l'avocat le plus à même de le traiter, à Créteil ou à Pontault-Combault. Cliquez sur un profil pour voir son parcours et ses domaines d'intervention.</p>
+  </div>
+</section>
+
+<section class="section team-section">
+  <div class="wrap">
+    <div class="team team--portraits" id="team-grid"></div>
+  </div>
+</section>
+
+<section class="section section--dark">
+  <div class="wrap cta-band">
+    <div class="cta-band__text">
+      <p class="kicker">Rendez-vous</p>
+      <h2>Prendre rendez-vous avec un avocat.</h2>
+      <p class="lead">Indiquez-nous votre situation : nous vous orientons vers l'avocat compétent et fixons un premier rendez-vous.</p>
+    </div>
+    <div class="cta-band__offices">
+      <div class="cta-office"><h4>Créteil</h4><p>4, rue des Archives, 94000</p><a href="tel:+33143999792">01 43 99 97 92</a></div>
+      <div class="cta-office"><h4>Pontault-Combault</h4><p>19, rue Lucien Brunet, 77340</p><a href="tel:+33170335016">01 70 33 50 16</a></div>
+      <a class="btn" href="contact.html">Prendre rendez-vous</a>
+    </div>
+  </div>
+</section>
+</main>
+
+<div id="site-footer"></div>
+
+<script src="js/main.js"></script>
+<script src="js/team-data.js"></script>
+<script>
+(function () {
+  var tg = document.getElementById('team-grid');
+  if (tg && window.MODENA_TEAM) tg.innerHTML = window.MODENA_TEAM.map(window.MODENA_renderTeamCard).join('');
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,59 @@
+/* Editorial domain cards: restrained symbols, generous type, no decorative effects. */
+.activities__track { align-items:stretch; }
+.activity {
+  min-height:420px;
+  padding:24px 22px 25px;
+  align-items:stretch;
+  text-align:left;
+  background:#f4f5f6;
+  border:1px solid var(--rule);
+}
+.activity--certified { background:#edf1f5; border-top:2px solid var(--ink); }
+:root :is(.wp-site-blocks,.editor-styles-wrapper) .activity .activity__number,
+.activity .activity__number {
+  width:auto;
+  margin:0;
+  padding:0;
+  border:0;
+  font:11px/1.5 var(--font-caption, var(--font-sans));
+  font-style:normal;
+  letter-spacing:.14em;
+  color:var(--teal);
+}
+.activity .activity__icon,
+.activity .wp-block-image.activity__icon {
+  width:56px;
+  height:56px;
+  margin:25px 0 20px;
+  flex:none;
+}
+.activity .activity__icon img,
+.activity img.activity__icon { width:56px; height:56px; object-fit:contain; }
+:root :is(.wp-site-blocks,.editor-styles-wrapper) .activity h3,
+.activity h3 {
+  display:block;
+  min-height:84px;
+  max-width:none;
+  margin:0 0 15px;
+  font:25px/1.15 var(--font-serif);
+  font-style:normal;
+  text-align:left;
+}
+.activity>p:not(.activity__number):not(:last-child) {
+  max-width:none;
+  margin:0 0 22px;
+  font:13px/1.75 var(--font-sans);
+  color:var(--muted);
+}
+:root :is(.wp-site-blocks,.editor-styles-wrapper) .activity>p:last-child,
+.activity>p:last-child { margin:auto 0 0; padding:0; text-align:left; }
+.activity .activity__link,
+.activity>a { color:var(--teal); font:12px/1.5 var(--font-sans); text-decoration:none; border-bottom:1px solid currentColor; }
+.activity .activity__link::after,
+.activity>a::after { content:' \2192'; }
+.activity:hover { border-color:var(--rule-strong); }
+@media(max-width:600px) {
+  .activity { min-height:420px; padding:25px 25px 27px; }
+  .activity .activity__icon,.activity .wp-block-image.activity__icon { margin:30px 0 24px; }
+  :root :is(.wp-site-blocks,.editor-styles-wrapper) .activity h3,.activity h3 { min-height:78px; margin:0 0 18px; font-size:27px; }
+}

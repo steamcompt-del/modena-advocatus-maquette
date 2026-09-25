@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex, nofollow" />
+<meta property="og:title" content="Redirection… | MODENA Advocatus" />
+<meta property="og:url" content="https://steamcompt-del.github.io/modena-advocatus-maquette/membre.html" />
+<meta property="og:image" content="https://steamcompt-del.github.io/modena-advocatus-maquette/assets/design/hero-architecture.png" />
+<title>Redirection… | MODENA Advocatus</title>
+<script>
+  (function () {
+    var id = new URLSearchParams(location.search).get('m');
+    var ok = id && /^[a-z0-9-]+$/.test(id);
+    location.replace(ok ? id + '.html' : 'equipe.html');
+  })();
+</script>
+<link rel="stylesheet" href="assets/design/fonts.css" />
+<link rel="stylesheet" href="assets/design/caslon.css" />
+<link rel="stylesheet" href="css/design.css" />
+<link rel="stylesheet" href="css/cabinet.css" />
+</head>
+<body>
+  <p>Cette page a été déplacée. <a href="equipe.html">Voir notre équipe →</a></p>
+</body>
+</html>
