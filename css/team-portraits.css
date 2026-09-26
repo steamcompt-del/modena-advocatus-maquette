@@ -15,9 +15,19 @@ body[data-page='accueil'] .team--portraits { grid-template-columns:repeat(3,minm
 .team-profile .team__focus { max-width:none; margin:17px 40px 0 45px; font-family:'Courier New',monospace; font-size:12px; line-height:1.65; letter-spacing:.035em; text-transform:uppercase; color:var(--muted); }
 .team-profile:hover .team__name { color:#fff; text-decoration:underline; text-decoration-thickness:1px; text-underline-offset:4px; }
 .team-profile:focus-visible { outline:3px solid var(--teal); outline-offset:5px; }
+.team-section__links { display:flex; gap:13px 28px; flex-wrap:wrap; }
+.team-calm { display:grid; grid-template-columns:minmax(220px,.85fr) repeat(2,minmax(0,1fr)); gap:26px; align-items:start; margin-top:78px; padding-top:34px; border-top:1px solid var(--rule-strong); scroll-margin-top:110px; }
+.team-calm__copy { padding-right:12px; }
+.team-calm__eyebrow { margin:0 0 13px; color:var(--teal-deep); font:11px/1.5 var(--font-caption); letter-spacing:.12em; text-transform:uppercase; }
+.team-calm h2 { margin:0 0 17px; font:400 clamp(30px,3vw,40px)/1.15 var(--font-serif); }
+.team-calm__copy > p:last-child { max-width:34ch; margin:0; color:var(--muted); font-size:16px; line-height:1.7; }
+.team-calm__photo { margin:0; aspect-ratio:4/5; min-width:0; overflow:hidden; background:var(--surface); }
+.team-calm__photo img { display:block; width:100%; height:100%; object-fit:cover; object-position:center 40%; }
 @media(max-width:1050px) {
   .team--portraits,
   body[data-page='accueil'] .team--portraits { grid-template-columns:repeat(2,minmax(0,1fr)); gap:40px 28px; }
+  .team-calm { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .team-calm__copy { grid-column:1/-1; }
 }
 @media(max-width:620px) {
   .team--portraits,
@@ -25,6 +35,9 @@ body[data-page='accueil'] .team--portraits { grid-template-columns:repeat(3,minm
   .team-profile .team__name { font-size:23px; }
   .team-profile .team__role { font-size:12px; }
   .team-profile .team__focus { font-size:12px; }
+  .team-calm { gap:12px; margin-top:55px; padding-top:27px; }
+  .team-calm h2 { font-size:33px; }
+  .team-calm__copy > p:last-child { font-size:15px; }
 }
 @media(max-width:370px) {
   .team-profile__frame { padding-inline:10px; }
