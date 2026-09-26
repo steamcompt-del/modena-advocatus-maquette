@@ -17,8 +17,10 @@
 <link rel="stylesheet" href="css/activities.css" />
 <link rel="stylesheet" href="css/domain-cards.css" />
 <link rel="stylesheet" href="css/cabinet.css" />
+<link rel="stylesheet" href="css/ux-proposition.css" />
+<link rel="stylesheet" href="css/competences-proposition.css" />
 </head>
-<body data-page="domaines">
+<body data-page="domaines" class="competences-page">
 
 <div id="site-header"></div>
 
@@ -26,51 +28,102 @@
 <section class="masthead">
   <div class="wrap">
     <div class="masthead__frame">
-    <nav class="breadcrumb" aria-label="Fil d'Ariane"><a href="index.html">Accueil</a><span>/</span>Compétences</nav>
-    <h1>Nos domaines d’intervention.</h1>
+      <nav class="breadcrumb" aria-label="Fil d'Ariane"><a href="index.html">Accueil</a><span>/</span>Compétences</nav>
+      <p class="masthead__kicker">Compétences du cabinet</p>
+      <h1>Quel est votre besoin&nbsp;?</h1>
+    </div>
+    <p class="masthead__lead">Un accident, une décision administrative, un conflit au travail ou un litige immobilier&nbsp;: partez de votre situation pour trouver le domaine qui vous concerne. Le cabinet intervient dans deux spécialités certifiées et douze autres domaines.</p>
+  </div>
+</section>
+
+<section class="section comp-start" aria-labelledby="comp-start-title">
+  <div class="wrap">
+    <div class="comp-section-heading">
+      <p class="comp-eyebrow">Pour commencer</p>
+      <h2 id="comp-start-title">Je cherche de l’aide pour…</h2>
+    </div>
+    <nav class="comp-situations" aria-label="Trouver un domaine selon votre situation">
+      <a href="droit-du-dommage-corporel.html"><span class="comp-situations__num">01</span><span>Des blessures après un accident</span><span class="comp-situations__arrow" aria-hidden="true">→</span></a>
+      <a href="droit-des-etrangers-et-de-la-nationalite.html"><span class="comp-situations__num">02</span><span>Un titre de séjour ou la nationalité</span><span class="comp-situations__arrow" aria-hidden="true">→</span></a>
+      <a href="droit-du-travail.html"><span class="comp-situations__num">03</span><span>Une difficulté au travail</span><span class="comp-situations__arrow" aria-hidden="true">→</span></a>
+      <a href="droit-immobilier.html"><span class="comp-situations__num">04</span><span>Un achat immobilier ou des travaux</span><span class="comp-situations__arrow" aria-hidden="true">→</span></a>
+      <a href="droit-penal-des-victimes.html"><span class="comp-situations__num">05</span><span>Une agression ou des violences</span><span class="comp-situations__arrow" aria-hidden="true">→</span></a>
+      <a href="responsabilite-de-letat.html"><span class="comp-situations__num">06</span><span>Un préjudice causé par l’État</span><span class="comp-situations__arrow" aria-hidden="true">→</span></a>
+    </nav>
+    <p class="comp-start__help">Votre situation ne correspond pas à ces exemples&nbsp;? <a href="#tous-les-domaines">Parcourir tous les domaines</a> ou <a href="contact.html">contacter le cabinet</a>.</p>
+  </div>
+</section>
+
+<section class="section comp-specialties" aria-labelledby="comp-specialties-title">
+  <div class="wrap">
+    <div class="comp-section-heading">
+      <p class="comp-eyebrow">Conseil national des barreaux</p>
+      <h2 id="comp-specialties-title">Deux spécialisations certifiées.</h2>
+      <p>Ces domaines font l’objet d’une certification de spécialisation. Chaque page détaille les situations prises en charge, les interventions et les documents à préparer.</p>
+    </div>
+    <div class="comp-feature">
+      <span class="comp-feature__number" aria-hidden="true">01</span>
+      <div class="comp-feature__content"><h3>Droit du dommage corporel</h3><p>Accompagnement des victimes pour l’indemnisation intégrale de leurs préjudices.</p><p class="comp-feature__examples">Accident de la route · Accident médical · Agression · Expertise · Offre d’indemnisation</p></div>
+      <a href="droit-du-dommage-corporel.html">Découvrir cette spécialité <span aria-hidden="true">→</span></a>
+    </div>
+    <div class="comp-feature">
+      <span class="comp-feature__number" aria-hidden="true">02</span>
+      <div class="comp-feature__content"><h3>Droit des étrangers et de la nationalité</h3><p>Titres de séjour, naturalisation, recours et accompagnement des démarches.</p><p class="comp-feature__examples">Titre de séjour · Refus · OQTF · Naturalisation · Regroupement familial</p></div>
+      <a href="droit-des-etrangers-et-de-la-nationalite.html">Découvrir cette spécialité <span aria-hidden="true">→</span></a>
     </div>
   </div>
 </section>
 
-<section class="section">
+<section class="section comp-directory" id="tous-les-domaines" aria-labelledby="comp-directory-title">
   <div class="wrap">
-    <div class="sec-head">
-      <h2>Spécialisations certifiées CNB.</h2>
+    <div class="comp-section-heading">
+      <p class="comp-eyebrow">Index complet</p>
+      <h2 id="comp-directory-title">Les autres domaines d’intervention.</h2>
+      <p>Tous les domaines sont visibles ici. Choisissez celui qui se rapproche de votre situation pour lire les informations détaillées.</p>
     </div>
-    <div class="spec-list" id="spec-list"></div>
+
+    <div class="comp-group">
+      <div class="comp-group__heading"><span>01 / 04</span><h3>Travail et administration</h3></div>
+      <ul class="comp-index">
+        <li><a href="droit-du-travail.html"><span class="comp-index__name">Droit du travail</span><span class="comp-index__summary">Rupture du contrat, harcèlement, discrimination et contentieux prud’homal.</span><span class="comp-index__arrow" aria-hidden="true">→</span></a></li>
+        <li><a href="droit-de-la-fonction-publique.html"><span class="comp-index__name">Droit de la fonction publique</span><span class="comp-index__summary">Sanctions disciplinaires, harcèlement et litiges avec l’administration.</span><span class="comp-index__arrow" aria-hidden="true">→</span></a></li>
+        <li><a href="responsabilite-de-letat.html"><span class="comp-index__name">Responsabilité de l’État</span><span class="comp-index__summary">Déni de justice, délais anormaux, faute lourde et DALO.</span><span class="comp-index__arrow" aria-hidden="true">→</span></a></li>
+      </ul>
+    </div>
+
+    <div class="comp-group">
+      <div class="comp-group__heading"><span>02 / 04</span><h3>Logement et immobilier</h3></div>
+      <ul class="comp-index">
+        <li><a href="droit-immobilier.html"><span class="comp-index__name">Droit immobilier</span><span class="comp-index__summary">Vices cachés, malfaçons, sinistres et contentieux de la construction.</span><span class="comp-index__arrow" aria-hidden="true">→</span></a></li>
+        <li><a href="droit-de-la-copropriete.html"><span class="comp-index__name">Droit de la copropriété</span><span class="comp-index__summary">Assemblées générales, syndic, charges et litiges entre copropriétaires.</span><span class="comp-index__arrow" aria-hidden="true">→</span></a></li>
+        <li><a href="droit-locatif.html"><span class="comp-index__name">Droit locatif</span><span class="comp-index__summary">Baux, impayés, congés, dépôt de garantie et expulsions.</span><span class="comp-index__arrow" aria-hidden="true">→</span></a></li>
+        <li><a href="droit-de-lhebergement.html"><span class="comp-index__name">Droit de l’hébergement</span><span class="comp-index__summary">Hébergement d’urgence, recours contre les refus, familles à la rue.</span><span class="comp-index__arrow" aria-hidden="true">→</span></a></li>
+      </ul>
+    </div>
+
+    <div class="comp-group">
+      <div class="comp-group__heading"><span>03 / 04</span><h3>Achats et déplacements</h3></div>
+      <ul class="comp-index">
+        <li><a href="droit-automobile.html"><span class="comp-index__name">Droit automobile</span><span class="comp-index__summary">Vices cachés, faux kilométrages, expertises et escroqueries à l’achat.</span><span class="comp-index__arrow" aria-hidden="true">→</span></a></li>
+        <li><a href="droit-de-la-consommation.html"><span class="comp-index__name">Droit de la consommation</span><span class="comp-index__summary">Pratiques trompeuses, clauses abusives, rétractation et litiges e-commerce.</span><span class="comp-index__arrow" aria-hidden="true">→</span></a></li>
+        <li><a href="droit-du-voyage-et-du-transport.html"><span class="comp-index__name">Droit du voyage et du transport</span><span class="comp-index__summary">Vols retardés ou annulés, bagages perdus et litiges avec les voyagistes.</span><span class="comp-index__arrow" aria-hidden="true">→</span></a></li>
+      </ul>
+    </div>
+
+    <div class="comp-group">
+      <div class="comp-group__heading"><span>04 / 04</span><h3>Victimes et libertés</h3></div>
+      <ul class="comp-index">
+        <li><a href="droit-penal-des-victimes.html"><span class="comp-index__name">Droit pénal des victimes</span><span class="comp-index__summary">Agressions, violences, constitution de partie civile et CIVI.</span><span class="comp-index__arrow" aria-hidden="true">→</span></a></li>
+        <li><a href="droit-de-lhomme-et-libertes-fondamentales.html"><span class="comp-index__name">Droits de l’Homme et libertés fondamentales</span><span class="comp-index__summary">Discriminations, libertés publiques, CEDH et QPC.</span><span class="comp-index__arrow" aria-hidden="true">→</span></a></li>
+      </ul>
+    </div>
   </div>
 </section>
 
-<section class="section activities-section">
+<section class="section comp-contact" aria-labelledby="comp-contact-title">
   <div class="wrap">
-    <div class="sec-head">
-      <h2>Autres domaines d’intervention.</h2>
-    </div>
-    <div class="activities" data-activities>
-      <ol class="activities__track" id="activities-track" tabindex="0" aria-label="Les douze domaines complémentaires">
-        <li class="activity"><span class="activity__number" aria-hidden="true">01.</span><img class="activity__icon" src="assets/img/domain-droit-du-travail.png" alt="" width="56" height="56" /><h3>Droit du travail</h3><p>Rupture du contrat, harcèlement, discrimination et contentieux prud'homal.</p><a href="droit-du-travail.html" aria-label="En savoir plus : Droit du travail">En savoir plus</a></li>
-        <li class="activity"><span class="activity__number" aria-hidden="true">02.</span><img class="activity__icon" src="assets/img/domain-droit-immobilier.png" alt="" width="56" height="56" /><h3>Droit immobilier</h3><p>Vices cachés, malfaçons, sinistres et contentieux de la construction.</p><a href="droit-immobilier.html" aria-label="En savoir plus : Droit immobilier">En savoir plus</a></li>
-        <li class="activity"><span class="activity__number" aria-hidden="true">03.</span><img class="activity__icon" src="assets/img/domain-droit-automobile.png" alt="" width="56" height="56" /><h3>Droit automobile</h3><p>Vices cachés, faux kilométrages, expertises et escroqueries à l'achat.</p><a href="droit-automobile.html" aria-label="En savoir plus : Droit automobile">En savoir plus</a></li>
-        <li class="activity"><span class="activity__number" aria-hidden="true">04.</span><img class="activity__icon" src="assets/img/domain-droit-de-la-copropriete.png" alt="" width="56" height="56" /><h3>Droit de la copropriété</h3><p>Assemblées générales, syndic, charges et litiges entre copropriétaires.</p><a href="droit-de-la-copropriete.html" aria-label="En savoir plus : Droit de la copropriété">En savoir plus</a></li>
-        <li class="activity"><span class="activity__number" aria-hidden="true">05.</span><img class="activity__icon" src="assets/img/domain-droit-locatif.png" alt="" width="56" height="56" /><h3>Droit locatif</h3><p>Baux, impayés, congés, dépôt de garantie et expulsions.</p><a href="droit-locatif.html" aria-label="En savoir plus : Droit locatif">En savoir plus</a></li>
-        <li class="activity"><span class="activity__number" aria-hidden="true">06.</span><img class="activity__icon" src="assets/img/domain-droit-de-la-consommation.png" alt="" width="56" height="56" /><h3>Droit de la consommation</h3><p>Pratiques trompeuses, clauses abusives, rétractation et litiges e-commerce.</p><a href="droit-de-la-consommation.html" aria-label="En savoir plus : Droit de la consommation">En savoir plus</a></li>
-        <li class="activity"><span class="activity__number" aria-hidden="true">07.</span><img class="activity__icon" src="assets/img/domain-droit-du-voyage-et-du-transport.png" alt="" width="56" height="56" /><h3>Droit du voyage et du transport</h3><p>Vols retardés ou annulés, bagages perdus et litiges avec les voyagistes.</p><a href="droit-du-voyage-et-du-transport.html" aria-label="En savoir plus : Droit du voyage et du transport">En savoir plus</a></li>
-        <li class="activity"><span class="activity__number" aria-hidden="true">08.</span><img class="activity__icon" src="assets/img/domain-droit-de-la-fonction-publique.png" alt="" width="56" height="56" /><h3>Droit de la fonction publique</h3><p>Sanctions disciplinaires, harcèlement et litiges avec l'administration.</p><a href="droit-de-la-fonction-publique.html" aria-label="En savoir plus : Droit de la fonction publique">En savoir plus</a></li>
-        <li class="activity"><span class="activity__number" aria-hidden="true">09.</span><img class="activity__icon" src="assets/img/domain-droit-de-lhomme-et-libertes-fondamentales.png" alt="" width="56" height="56" /><h3>Droits de l'Homme et libertés fondamentales</h3><p>Discriminations, libertés publiques, CEDH et QPC.</p><a href="droit-de-lhomme-et-libertes-fondamentales.html" aria-label="En savoir plus : Droits de l'Homme et libertés fondamentales">En savoir plus</a></li>
-        <li class="activity"><span class="activity__number" aria-hidden="true">10.</span><img class="activity__icon" src="assets/img/domain-responsabilite-de-letat.png" alt="" width="56" height="56" /><h3>Responsabilité de l'État</h3><p>Déni de justice, délais anormaux, faute lourde et DALO.</p><a href="responsabilite-de-letat.html" aria-label="En savoir plus : Responsabilité de l'État">En savoir plus</a></li>
-        <li class="activity"><span class="activity__number" aria-hidden="true">11.</span><img class="activity__icon" src="assets/img/domain-droit-penal-des-victimes.png" alt="" width="56" height="56" /><h3>Droit pénal des victimes</h3><p>Agressions, violences, constitution de partie civile et CIVI.</p><a href="droit-penal-des-victimes.html" aria-label="En savoir plus : Droit pénal des victimes">En savoir plus</a></li>
-        <li class="activity"><span class="activity__number" aria-hidden="true">12.</span><img class="activity__icon" src="assets/img/domain-droit-de-lhebergement.png" alt="" width="56" height="56" /><h3>Droit de l'hébergement</h3><p>Hébergement d'urgence, recours contre les refus, familles à la rue.</p><a href="droit-de-lhebergement.html" aria-label="En savoir plus : Droit de l'hébergement">En savoir plus</a></li>
-      </ol>
-      <div class="activities__navigation" hidden>
-        <p class="activities__hint">Faites défiler les domaines</p>
-        <div class="activities__controls">
-          <button type="button" data-activities-prev aria-label="Domaines précédents" aria-controls="activities-track" disabled><span aria-hidden="true">←</span></button>
-          <span class="activities__position" aria-live="polite" aria-atomic="true"></span>
-          <button type="button" data-activities-next aria-label="Domaines suivants" aria-controls="activities-track"><span aria-hidden="true">→</span></button>
-        </div>
-      </div>
-    </div>
-    <p class="section__foot">Un besoin qui ne figure pas dans cette liste ? <a class="arrow-link" href="contact.html">Écrivez-nous &rarr;</a></p>
+    <div><p class="comp-eyebrow">Vous hésitez&nbsp;?</p><h2 id="comp-contact-title">Parlez-nous de votre situation.</h2><p>Le cabinet pourra vous orienter vers l’interlocuteur et le domaine adaptés à votre demande.</p></div>
+    <div class="comp-contact__actions"><a class="btn" href="contact.html">Contacter le cabinet</a><a href="tel:+33143999792">01 43 99 97 92</a></div>
   </div>
 </section>
 </main>
@@ -78,18 +131,6 @@
 <div id="site-footer"></div>
 
 <script src="js/main.js?v=20260926-logo"></script>
-<script src="js/domains-data.js"></script>
-<script>
-(function () {
-  var list = window.MODENA_DOMAINS || [];
-  var specs = list.filter(function (d) { return d.category === 'specialisation'; });
-  var autres = list.filter(function (d) { return d.category === 'autre'; });
-  var sl = document.getElementById('spec-list');
-  if (sl) sl.innerHTML = specs.map(window.MODENA_renderSpec).join('');
-  var di = document.getElementById('domain-index');
-  if (di) di.innerHTML = autres.map(window.MODENA_renderDomainItem).join('');
-})();
-</script>
-<script src="js/activities.js"></script>
+<script src="js/ux-proposition.js"></script>
 </body>
 </html>
