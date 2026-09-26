@@ -47,6 +47,7 @@ h3 { font-size:29px; line-height:1.2; }
 .site-header { position:static; background:#fff; border:0; backdrop-filter:none; }
 .site-header__in { min-height:100px; gap:24px; }
 .wordmark { gap:8px; flex-shrink:0; }
+.wordmark__logo { display:block; width:244px; max-width:100%; height:auto; }
 .wordmark b { font-size:27px; font-weight:400; letter-spacing:0; white-space:nowrap; }
 .wordmark span { font-size:9px; letter-spacing:.1em; font-weight:400; color:var(--ink); }
 .mainnav { font-size:12px; font-weight:400; gap:19px; white-space:nowrap; }
@@ -58,6 +59,7 @@ h3 { font-size:29px; line-height:1.2; }
 .menu-toggle { font-size:12px; font-weight:400; padding:9px 13px; }
 .menu__panel { width:min(90vw,390px); }
 .menu__top .wordmark b { font-size:23px; }
+.menu__top .wordmark__logo { width:200px; }
 .menu__nav a { font-size:27px; }
 .menu__foot a.tel-link,.menu__foot a.mail-link { font-size:13px; }
 
@@ -203,6 +205,7 @@ body[data-page='faq'] .sec-head { text-align:left; max-width:none; }
 .cta-office a { color:var(--ink); border-color:var(--rule); font-size:14px; font-weight:400; }
 .cta-office a:hover { color:var(--teal); }
 .site-footer { background:var(--ink); padding-top:53px; color:#fff; }
+.site-footer .wordmark__logo { width:220px; filter:grayscale(1) invert(1); mix-blend-mode:screen; }
 .site-footer__in { grid-template-columns:1.7fr .8fr 1fr 1.1fr; gap:40px; padding-bottom:39px; }
 .site-footer .wordmark span { color:var(--muted-dark); }
 .site-footer__brand p { font-size:12px; line-height:1.9; color:var(--muted-dark); max-width:34ch; }
@@ -253,6 +256,7 @@ body[data-page='faq'] .sec-head { text-align:left; max-width:none; }
   body { font-size:14px; }
   h2 { font-size:34px; }
   .site-header__in { min-height:78px; gap:15px; }
+  .site-header .wordmark__logo { width:min(200px,52vw); }
   .wordmark b { font-size:24px; }
   .wordmark span { font-size:8px; }
   html { scroll-padding-top:96px; }

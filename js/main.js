@@ -23,7 +23,7 @@
 
   function wordmark() {
     return '<a class="wordmark" href="index.html" aria-label="Accueil — MODENA Advocatus">' +
-      '<b>MODENA Advocatus</b><span>Cabinet d\'avocats</span></a>';
+      '<img class="wordmark__logo" src="assets/img/logo-modena-fond-blanc.webp" alt="MODENA Advocatus" width="244" height="62"></a>';
   }
 
   function navLinks(page, cls) {
