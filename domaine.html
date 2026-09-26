@@ -13,6 +13,14 @@
   (function () {
     var id = new URLSearchParams(location.search).get('d');
     var ok = id && /^[a-z0-9-]+$/.test(id);
+    if (id === 'droit-de-lhebergement') {
+      location.replace('droit-au-logement-opposable.html');
+      return;
+    }
+    if (id === 'droit-du-travail' || id === 'droit-de-la-fonction-publique') {
+      location.replace('domaines.html');
+      return;
+    }
     location.replace(ok ? id + '.html' : 'domaines.html');
   })();
 </script>

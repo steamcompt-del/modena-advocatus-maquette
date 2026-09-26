@@ -13,7 +13,7 @@
   (function () {
     var id = new URLSearchParams(location.search).get('m');
     var ok = id && /^[a-z0-9-]+$/.test(id);
-    location.replace(ok ? id + '.html' : 'equipe.html');
+    location.replace(ok && id !== 'dominique-monget-sarrail' ? id + '.html' : 'equipe.html');
   })();
 </script>
 <link rel="stylesheet" href="assets/design/fonts.css" />

@@ -64,7 +64,7 @@
     return '<footer class="site-footer"><div class="wrap">' +
       '<div class="site-footer__in">' +
         '<div class="site-footer__brand">' + wordmark() +
-          '<p>Cabinet d\'avocats à Créteil et Pontault-Combault. Deux spécialisations reconnues par le Conseil national des barreaux : dommage corporel et droit des étrangers.</p>' +
+          '<p>Cabinet d\'avocats à Créteil et Pontault-Combault. Cabinet généraliste, aide aux victimes et spécialisation en droit du dommage corporel.</p>' +
         '</div>' +
         '<div class="site-footer__col"><h4>Cabinet</h4>' +
           '<a href="domaines.html">Compétences</a><a href="equipe.html">L\'équipe</a>' +
