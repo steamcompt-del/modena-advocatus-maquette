@@ -126,6 +126,8 @@ function pieceCount(count){return `${count} pièce${count>1?'s':''}`}
 function initLawyer(){
   const lawyerSelect=document.querySelector('#lawyer-select');
   const templateSelect=document.querySelector('#template-select');
+  const templateLawyerSelect=document.querySelector('#template-lawyer-select');
+  const templateManageSelect=document.querySelector('#template-manage-select');
   const list=document.querySelector('#lawyer-checklist');
   const customForm=document.querySelector('#custom-item-form');
   const templateEditor=document.querySelector('#template-editor');
@@ -208,6 +210,27 @@ function initLawyer(){
     [newTemplateButton,editTemplateButton,copyTemplateButton].forEach(button=>button.setAttribute('aria-expanded','false'));
     return true;
   }
+  const cabinetLinks=[...document.querySelectorAll('[data-cabinet-tab]')];
+  const cabinetViews=[...document.querySelectorAll('[data-cabinet-view]')];
+  let activeCabinetTab='envoi';
+  function tabFromHash(){const tab=location.hash.slice(1);return tab==='received-cases'?'dossiers':['envoi','listes','dossiers'].includes(tab)?tab:'envoi'}
+  function showCabinetTab(tab){
+    activeCabinetTab=tab;
+    cabinetViews.forEach(view=>{view.hidden=view.dataset.cabinetView!==tab});
+    cabinetLinks.forEach(link=>{if(link.closest('.cabinet-tabs')){if(link.dataset.cabinetTab===tab)link.setAttribute('aria-current','page');else link.removeAttribute('aria-current')}});
+    document.body.dataset.cabinetTab=tab;
+  }
+  cabinetLinks.forEach(link=>link.addEventListener('click',event=>{
+    event.preventDefault();
+    const next=link.dataset.cabinetTab;
+    if(next===activeCabinetTab)return;
+    if(activeCabinetTab==='listes'&&!closeTemplateEditor())return;
+    history.pushState(null,'',`#${next}`);
+    showCabinetTab(next);
+    window.scrollTo({top:0,behavior:'instant'});
+  }));
+  window.addEventListener('hashchange',()=>showCabinetTab(tabFromHash()));
+  window.addEventListener('popstate',()=>showCabinetTab(tabFromHash()));
   function renumberTemplateItems(){
     [...templateItemList.children].forEach((row,index)=>{
       row.querySelector('label span').textContent=`Pièce ${String(index+1).padStart(2,'0')}`;
@@ -260,12 +283,15 @@ function initLawyer(){
   function titleInUse(title,exceptId){return templatesFor(request.lawyer).some(set=>set.id!==exceptId&&set.title.toLocaleLowerCase('fr')===title.toLocaleLowerCase('fr'))}
   function render(){
     lawyerSelect.value=request.lawyer;
-    templateSelect.replaceChildren();
-    const builtIn=element('optgroup');builtIn.label='Listes proposées';
-    const personal=element('optgroup');personal.label='Listes créées par le cabinet';
-    templatesFor(request.lawyer).forEach(set=>{const option=element('option','',set.title);option.value=set.id;(set.builtIn?builtIn:personal).append(option)});
-    templateSelect.append(builtIn);if(personal.children.length)templateSelect.append(personal);
-    templateSelect.value=request.templateId;
+    templateLawyerSelect.value=request.lawyer;
+    [templateSelect,templateManageSelect].forEach(select=>{
+      select.replaceChildren();
+      const builtIn=element('optgroup');builtIn.label='Listes proposées';
+      const personal=element('optgroup');personal.label='Listes créées par le cabinet';
+      templatesFor(request.lawyer).forEach(set=>{const option=element('option','',set.title);option.value=set.id;(set.builtIn?builtIn:personal).append(option)});
+      select.append(builtIn);if(personal.children.length)select.append(personal);
+      select.value=request.templateId;
+    });
     const chosen=findTemplate(request.lawyer,request.templateId);
     editTemplateButton.hidden=Boolean(chosen?.builtIn);
     copyTemplateButton.hidden=!chosen?.builtIn;
@@ -285,6 +311,8 @@ function initLawyer(){
   function updatePreview(){document.querySelector('#preview-lawyer').textContent=templates[request.lawyer].name;document.querySelector('#selected-count').textContent=String(request.items.filter(x=>x.selected).length);saveRequest(request);renderInvitations()}
   lawyerSelect.addEventListener('change',()=>{if(!closeTemplateEditor()){lawyerSelect.value=request.lawyer;return}request.lawyer=lawyerSelect.value;document.querySelector('#demo-case-result').hidden=true;activateTemplate('base:0')});
   templateSelect.addEventListener('change',()=>{if(!closeTemplateEditor()){templateSelect.value=request.templateId;return}activateTemplate(templateSelect.value)});
+  templateLawyerSelect.addEventListener('change',()=>{if(!closeTemplateEditor()){templateLawyerSelect.value=request.lawyer;return}request.lawyer=templateLawyerSelect.value;document.querySelector('#demo-case-result').hidden=true;activateTemplate('base:0')});
+  templateManageSelect.addEventListener('change',()=>{if(!closeTemplateEditor()){templateManageSelect.value=request.templateId;return}activateTemplate(templateManageSelect.value)});
   customForm.addEventListener('submit',event=>{event.preventDefault();const input=customForm.elements['custom-item'];const label=input.value.trim();if(!label)return;if(request.items.some(x=>x.label.toLocaleLowerCase('fr')===label.toLocaleLowerCase('fr'))){input.setCustomValidity('Cette pièce figure déjà dans la liste.');input.reportValidity();return}if(request.items.length>=30){input.setCustomValidity('La limite de cette démonstration est de 30 pièces.');input.reportValidity();return}input.setCustomValidity('');request.items.push({label,selected:true,custom:true});input.value='';saveRequest(request);render();input.focus()});
   customForm.elements['custom-item'].addEventListener('input',event=>event.target.setCustomValidity(''));
   newTemplateButton.addEventListener('click',()=>startTemplateEditor('new'));
@@ -345,6 +373,7 @@ function initLawyer(){
   });
   document.querySelector('#received-search').addEventListener('input',renderReceived);
   render();
+  showCabinetTab(tabFromHash());
 }
 
 function initClient(){
