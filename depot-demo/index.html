@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Préparer une demande de pièces — MODENA Advocatus</title>
+  <link rel="icon" href="assets/favicon.png" type="image/png">
+  <link rel="stylesheet" href="styles.css">
+  <script src="app.js" defer></script>
+</head>
+<body data-view="lawyer">
+  <div class="demo-strip"><span class="demo-dot" aria-hidden="true"></span> Démonstration publique, sans connexion sécurisée · Données et fichiers fictifs uniquement</div>
+  <header class="site-header">
+    <div class="site-header__inner">
+      <a class="brand" href="index.html" aria-label="MODENA Advocatus — espace cabinet"><img src="assets/logo-modena.webp" alt="MODENA Advocatus" width="244" height="71"></a>
+      <nav class="site-nav" aria-label="Parcours de démonstration"><a href="index.html" aria-current="page">Espace cabinet</a><a href="client.html">Aperçu client</a><a href="#received-cases">Dossiers reçus</a></nav>
+      <span class="header-label">Dépôt de pièces</span>
+    </div>
+  </header>
+  <main>
+    <div class="page-intro wrap">
+      <div><p class="eyebrow">01 / Préparer la demande</p><h1>Les bonnes pièces,<br><em>pour le bon dossier.</em></h1></div>
+      <p class="intro-copy">Choisissez l’avocat référent, partez d’une liste type, puis adaptez-la au dossier. Le client recevra une demande claire, pièce par pièce.</p>
+    </div>
+    <div class="workspace wrap">
+      <aside class="workspace-rail" aria-label="Étapes du parcours cabinet">
+        <p class="rail-title">Votre parcours</p>
+        <ol><li class="is-current"><span>01</span> Composer la liste</li><li><span>02</span> Inviter le client</li><li><span>03</span> Récupérer le dossier</li></ol>
+        <div class="rail-note"><p class="mini-label">Dans cette ébauche</p><p>Les liens créés fonctionnent uniquement dans ce navigateur. Aucun compte avocat, e-mail ou document réel n’est transmis.</p></div>
+      </aside>
+      <div class="workspace-main">
+        <section class="editor-section" aria-labelledby="referent-title">
+          <div class="section-heading"><span class="section-number">01</span><div><p class="eyebrow">Référent et listes types</p><h2 id="referent-title">Choisir l’avocat et sa liste.</h2></div></div>
+          <div class="form-grid">
+            <label class="field"><span>Avocat référent</span><select id="lawyer-select"><option value="lydie">Me Lydie NAVENNEC NORMAND</option><option value="romain">Me Romain NORMAND</option><option value="elsa">Me Elsa SADAKA</option><option value="lou">Me Lou LEVY-HADIDA</option></select></label>
+            <label class="field"><span>Liste type</span><select id="template-select"></select></label>
+          </div>
+          <p class="field-help">Choisissez une liste pour préparer le dossier. Les modifications apportées aux pièces de la demande ci-dessous ne changent pas la liste enregistrée.</p>
+          <div class="template-toolbar">
+            <button class="button-secondary" type="button" id="new-template" aria-expanded="false" aria-controls="template-editor">+ Nouvelle liste type</button>
+            <button class="button-secondary" type="button" id="edit-template" aria-expanded="false" aria-controls="template-editor" hidden>Modifier cette liste</button>
+            <button class="text-button" type="button" id="copy-template" aria-expanded="false" aria-controls="template-editor">Copier et modifier cette liste</button>
+          </div>
+          <form class="template-editor" id="template-editor" hidden>
+            <div class="template-editor__heading"><div><p class="mini-label">Édition de la liste type</p><h3 id="template-editor-title">Nouvelle liste type</h3></div><span id="template-draft-status" class="template-draft-status" aria-live="polite">Non enregistrée</span></div>
+            <label class="field" for="template-title"><span>Nom de la liste <abbr title="obligatoire">*</abbr></span><input id="template-title" maxlength="80" required placeholder="Ex. Accident de la circulation"></label>
+            <div class="template-editor__pieces"><p class="template-editor__label">Pièces à demander <span>(état civil et identité ajoutés automatiquement)</span></p><div id="template-item-list" class="template-item-list"></div><button class="button-secondary" type="button" id="add-template-item">+ Ajouter une pièce</button></div>
+            <p id="template-item-error" class="template-item-error" role="alert" hidden></p>
+            <div class="template-editor__actions"><button class="button-primary" type="submit" id="save-template">Enregistrer la liste</button><button class="text-button" type="button" id="cancel-template">Annuler</button><button class="text-button template-editor__delete" type="button" id="show-delete-template" hidden>Supprimer la liste</button></div>
+            <div class="template-delete" id="template-delete" hidden><p>Supprimer définitivement cette liste type de ce navigateur ? Les liens clients déjà créés conserveront leurs pièces.</p><button class="button-secondary" type="button" id="cancel-delete-template">Conserver la liste</button><button class="button-danger" type="button" id="confirm-delete-template">Oui, supprimer</button></div>
+          </form>
+          <p class="template-status" id="template-status" role="status" aria-live="polite"></p>
+        </section>
+        <section class="editor-section" aria-labelledby="pieces-title">
+          <div class="section-heading"><span class="section-number">02</span><div><p class="eyebrow">Liste des pièces</p><h2 id="pieces-title">Que souhaitez-vous demander ?</h2></div></div>
+          <p class="section-description">Cochez les pièces utiles. Le formulaire d’état civil et les deux faces de la pièce d’identité restent inclus dans ce parcours de démonstration.</p>
+          <div class="required-row"><span class="required-mark" aria-hidden="true">✓</span><div><strong>État civil et identité</strong><small>Formulaire d’état civil · pièce d’identité recto et verso</small></div><span class="required-tag">Obligatoire</span></div>
+          <fieldset class="checklist" id="lawyer-checklist"><legend class="sr-only">Pièces à demander</legend></fieldset>
+          <form id="custom-item-form" class="add-form"><label class="field" for="custom-item"><span>Ajouter une pièce propre au dossier</span><input id="custom-item" name="custom-item" type="text" maxlength="120" placeholder="Ex. Courrier de l’assureur"></label><button class="text-button" type="submit">+ Ajouter à la liste</button></form>
+        </section>
+        <section class="editor-section preview-section" aria-labelledby="preview-title">
+          <div class="section-heading"><span class="section-number">03</span><div><p class="eyebrow">Invitation client</p><h2 id="preview-title">Créer un lien pour ce dossier.</h2></div></div>
+          <div class="preview-box"><div><p class="mini-label">Demande préparée par</p><strong id="preview-lawyer">Me Lydie NAVENNEC NORMAND</strong></div><div class="preview-count"><strong id="selected-count">0</strong><span>pièces demandées<br>+ identité</span></div></div>
+          <p class="section-description">Le lien gardera une copie de cette liste et dirigera le client vers son formulaire. Si vous changez les pièces ensuite, générez un nouveau lien et révoquez l’ancien.</p>
+          <div class="invitation-controls"><label class="field" for="invitation-validity"><span>Validité du lien</span><select id="invitation-validity"><option value="3">3 jours</option><option value="7" selected>7 jours</option><option value="14">14 jours</option></select></label><button class="button-primary" type="button" id="generate-invitation">Générer un lien unique <span aria-hidden="true">→</span></button></div>
+          <div class="invitation-result" id="invitation-result" hidden>
+            <p class="mini-label">Lien de démonstration créé</p>
+            <label class="field" for="invitation-url"><span>À copier pour le client</span><input id="invitation-url" type="text" readonly spellcheck="false"></label>
+            <p class="field-help" id="invitation-expiry"></p>
+            <div class="invitation-result__actions"><button class="button-secondary" type="button" id="copy-invitation">Copier le lien</button><a class="text-button" id="open-invitation" href="client.html">Tester le parcours client ↗</a><button class="text-button" type="button" id="revoke-invitation">Révoquer ce lien</button></div>
+          </div>
+          <p class="template-status" id="invitation-status" role="status" aria-live="polite"></p>
+          <div class="invitation-history" id="invitation-history" hidden><h3>Liens créés pour cet avocat</h3><ul id="invitation-list"></ul></div>
+          <p class="invitation-caution">Les liens de cette maquette fonctionnent uniquement dans le navigateur qui les crée. Ne les envoyez pas à de vrais clients.</p>
+          <details class="delivery-preview"><summary>Ce que l’avocat recevra après le dépôt</summary><p>Un e-mail de notification avec la référence du dossier, les informations saisies dans le formulaire, les pièces déclarées et un lien vers l’espace avocat, sans document joint. Après connexion au cabinet, l’avocat pourra télécharger un ZIP classé. Dans cette ébauche, aucun e-mail n’est envoyé.</p></details>
+        </section>
+        <section class="editor-section received-cases" id="received-cases" aria-labelledby="received-title">
+          <div class="section-heading"><span class="section-number">04</span><div><p class="eyebrow">Réception · simulation</p><h2 id="received-title">Dossiers reçus.</h2></div></div>
+          <p class="section-description">Retrouvez un dossier par le nom du client ou sa référence, quel que soit l’avocat référent. Aucun document réel n’a été transmis.</p>
+          <label class="field received-search" for="received-search"><span>Rechercher un dossier</span><input id="received-search" type="search" autocomplete="off" placeholder="Nom du client ou référence"></label>
+          <p class="received-count" id="received-count" role="status" aria-live="polite"></p>
+          <div id="received-list" class="received-list"></div>
+          <div class="demo-seed"><p>Pour voir directement l’espace avocat, créez un exemple sans remplir le formulaire client.</p><button class="button-secondary" type="button" id="create-demo-case">Créer un dossier fictif prêt à tester</button><div id="demo-case-result" class="demo-seed__result" hidden><a class="button-primary" id="open-demo-case" href="dossier.html">Ouvrir le dossier fictif →</a></div><p id="demo-case-status" class="template-status" role="status" aria-live="polite"></p></div>
+        </section>
+      </div>
+    </div>
+  </main>
+  <footer class="site-footer"><span>MODENA Advocatus</span><span>Maquette publique de démonstration · Aucune authentification réelle</span></footer>
+</body>
+</html>

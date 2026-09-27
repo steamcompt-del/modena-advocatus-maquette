@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Compléter mon dossier — MODENA Advocatus</title>
+  <link rel="icon" href="assets/favicon.png" type="image/png">
+  <link rel="stylesheet" href="styles.css">
+  <script src="app.js" defer></script>
+</head>
+<body data-view="complement">
+  <div class="demo-strip"><span class="demo-dot" aria-hidden="true"></span> Démonstration publique, sans connexion sécurisée · Données et fichiers fictifs uniquement</div>
+  <header class="site-header"><div class="site-header__inner"><a class="brand" href="index.html" aria-label="MODENA Advocatus — espace cabinet"><img src="assets/logo-modena.webp" alt="MODENA Advocatus" width="244" height="71"></a><span class="header-label">Complément de dossier</span></div></header>
+  <main class="client-main wrap supplement-main">
+    <section id="supplement-unavailable" class="case-panel" hidden><p class="eyebrow">Lien indisponible</p><h1 id="supplement-unavailable-title">Cette demande n’est plus accessible.</h1><p id="supplement-unavailable-reason">Contactez le cabinet pour obtenir un nouveau lien.</p><a class="button-secondary" id="supplement-reload" href="" hidden>Afficher la demande à jour</a><p>Pour une question, appelez le <a href="tel:+33143999792">01 43 99 97 92</a>.</p></section>
+    <div id="supplement-content" hidden>
+      <div class="client-intro"><p class="eyebrow">Demande complémentaire · démonstration</p><h1>Compléter<br><em>votre dossier.</em></h1><p>Votre avocat vous demande quelques pièces supplémentaires. Vous n’avez pas à recommencer le formulaire d’identité.</p><div class="requester"><span class="requester-mark" aria-hidden="true">M</span><div><small>Votre interlocuteur</small><strong id="supplement-lawyer"></strong></div></div></div>
+      <div class="supplement-layout"><aside class="supplement-rail"><p class="rail-title">Votre référence</p><strong id="supplement-reference"></strong><p>Conservez cette référence pour contacter le cabinet.</p><p>Besoin d’aide ?<br><a href="tel:+33143999792">01 43 99 97 92</a></p></aside><form id="supplement-form" class="supplement-form" novalidate><p class="eyebrow">Pièces demandées</p><h2>Que pouvez-vous transmettre ?</h2><p class="section-description">Choisissez un PDF ou une image lisible pour chaque pièce. Si vous ne l’avez toujours pas, signalez-le.</p><div id="supplement-items"></div><p class="upload-note">Démonstration : les fichiers choisis ne sont ni lus, ni conservés, ni envoyés. Utilisez uniquement des fichiers fictifs.</p><div class="panel-actions"><button class="button-primary" type="submit">Simuler l’envoi du complément <span aria-hidden="true">→</span></button></div></form></div>
+      <section id="supplement-completion" class="client-panel completion" hidden><p class="eyebrow">Complément simulé</p><h2 id="supplement-completion-title">Votre complément est enregistré.</h2><p>Référence : <strong id="supplement-completion-reference"></strong>. Le cabinet voit désormais les nouveaux statuts des pièces dans cette maquette.</p><p id="supplement-completion-counts" class="completion-counts"></p><div id="supplement-remaining-block" class="completion-missing" hidden><h3>Pièces toujours indisponibles</h3><ul id="supplement-remaining-list"></ul></div><p>Si vous retrouvez une autre pièce, contactez le cabinet au <a href="tel:+33143999792">01 43 99 97 92</a> avec votre référence.</p><p class="completion-demo-note">Aucun fichier ni e-mail réel n’a été transmis.</p><div class="completion-demo-link"><p class="mini-label">Tester le côté cabinet</p><a class="button-secondary" id="supplement-open-case" href="index.html#received-cases">Voir le dossier dans la maquette <span aria-hidden="true">→</span></a></div></section>
+    </div>
+  </main>
+  <footer class="site-footer"><span>MODENA Advocatus</span><span>Maquette publique de démonstration · Aucune authentification réelle</span></footer>
+</body>
+</html>
