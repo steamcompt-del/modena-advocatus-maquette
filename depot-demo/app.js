@@ -1,5 +1,5 @@
-/* Maquette de démonstration : aucun fichier n'est lu ou envoyé. Le nom du client est
-   attaché au dossier fictif ; les autres données d'état civil restent dans la session. */
+/* Maquette locale : fichiers fictifs analysés sur cet appareil et conservés dans
+   IndexedDB après dépôt simulé. Aucune transmission ; identité dans la session. */
 const templates = {
   lydie: {
     name: 'Me Lydie NAVENNEC NORMAND',
@@ -33,8 +33,17 @@ const templates = {
 const storageKey = 'modena-demo-request';
 const templateStorageKey = 'modena-demo-templates-v1';
 const invitationStorageKey = 'modena-demo-invitations-v1';
+const invitationLockName = 'modena-demo-invitations-commit-v1';
+function withInvitationLock(action){
+  if(typeof navigator==='undefined'||!navigator.locks?.request)return Promise.reject(new Error('Enregistrement indisponible : ce navigateur ne permet pas de protéger le dossier entre plusieurs onglets. Ouvrez cette démonstration dans un navigateur récent, en HTTPS ou sur http://127.0.0.1, puis réessayez.'));
+  return navigator.locks.request(invitationLockName,{mode:'exclusive'},action);
+}
+const fileSizeOptions = [5,10,20,50,100];
+function fileSizeLimit(value){return fileSizeOptions.includes(Number(value))?Number(value):10}
+function fileSizeHelp(value){return `PDF, JPG ou PNG · ${fileSizeLimit(value)} Mo maximum par fichier`}
+function fileSizeError(file,value){return file&&file.size>fileSizeLimit(value)*1024*1024?`Ce fichier dépasse la limite de ${fileSizeLimit(value)} Mo choisie par l’avocat.`:''}
 const identityStoragePrefix = 'modena-demo-identity-v1:';
-const identityFields = ['firstName','lastName','birthDate','email','address','postalCode','city'];
+const identityFields = ['firstName','lastName','birthDate','profession','nationality','email','address','postalCode','city'];
 const uuidPattern = /^[0-9a-f-]{36}$/i;
 function safeLabels(value,limit=30){return Array.isArray(value)?value.filter(label=>typeof label==='string'&&label.trim()&&label.length<=120).slice(0,limit):[]}
 function safeClientName(value){return typeof value==='string'?value.trim().replace(/\s+/g,' ').slice(0,160):''}
@@ -44,9 +53,10 @@ function clientNameFor(invitation){
   return identity?safeClientName(`${identity.firstName} ${identity.lastName}`):'';
 }
 function searchKey(value){return value.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('fr').replace(/\s+/g,' ').trim()}
-function normalizeFollowUp(value){
-  if(!value||!uuidPattern.test(value.token)||!Number.isFinite(value.expiresAt))return null;
-  return {token:value.token,items:safeLabels(value.items),revision:Number.isInteger(value.revision)&&value.revision>0?value.revision:1,createdAt:Number(value.createdAt)||0,expiresAt:value.expiresAt,submittedAt:Number(value.submittedAt)||0,received:safeLabels(value.received),missing:safeLabels(value.missing)};
+function safeReasons(value,items){return Object.fromEntries(items.filter(label=>value&&typeof value[label]==='string').map(label=>[label,value[label].trim().slice(0,500)]))}
+function normalizeFollowUp(value,parentLimit=10){
+  if(!value||!uuidPattern.test(value.token))return null;
+  return {token:value.token,items:safeLabels(value.items),reasons:safeReasons(value.reasons,safeLabels(value.items)),maxFileSizeMB:fileSizeLimit(value.maxFileSizeMB??parentLimit),revision:Number.isInteger(value.revision)&&value.revision>0?value.revision:1,createdAt:Number(value.createdAt)||0,revoked:Boolean(value.revoked),submittedAt:Number(value.submittedAt)||0,received:safeLabels(value.received),missing:safeLabels(value.missing)};
 }
 function saveCaseIdentity(token,identity){
   try {
@@ -58,8 +68,8 @@ function saveCaseIdentity(token,identity){
 function loadCaseIdentity(token){
   try {
     const parsed=JSON.parse(sessionStorage.getItem(`${identityStoragePrefix}${token}`));
-    if(!parsed||typeof parsed!=='object'||!identityFields.every(field=>typeof parsed[field]==='string'))return null;
-    return parsed;
+    if(!parsed||typeof parsed!=='object'||!identityFields.every(field=>typeof parsed[field]==='string'||(['profession','nationality'].includes(field)&&parsed[field]===undefined)))return null;
+    return Object.fromEntries(identityFields.map(field=>[field,String(parsed[field]??'').trim().slice(0,250)]));
   }catch{return null}
 }
 function deleteCaseIdentity(token){try{sessionStorage.removeItem(`${identityStoragePrefix}${token}`)}catch{/* Démonstration dans le navigateur. */}}
@@ -67,29 +77,53 @@ function loadInvitations(){
   try {
     const parsed=JSON.parse(localStorage.getItem(invitationStorageKey));
     if(!Array.isArray(parsed))return [];
-    let migratedName=false;
-    const invitations=parsed.filter(entry=>entry&&uuidPattern.test(entry.token)&&templates[entry.lawyer]&&Array.isArray(entry.items)&&Number.isFinite(entry.expiresAt))
-      .slice(-40).map(entry=>{
+    const invitations=parsed.filter(entry=>entry&&uuidPattern.test(entry.token)&&templates[entry.lawyer]&&Array.isArray(entry.items))
+      .map(entry=>{
         let clientName=safeClientName(entry.clientName);
         if(!clientName&&entry.submittedAt&&!entry.deletedAt){
           const identity=loadCaseIdentity(entry.token);
           clientName=identity?safeClientName(`${identity.firstName} ${identity.lastName}`):'';
-          if(clientName)migratedName=true;
         }
-        return {token:entry.token,lawyer:entry.lawyer,clientName,items:safeLabels(entry.items),createdAt:Number(entry.createdAt)||0,expiresAt:entry.expiresAt,revoked:Boolean(entry.revoked),submittedAt:Number(entry.submittedAt)||0,deletedAt:Number(entry.deletedAt)||0,received:safeLabels(entry.received,40),missing:safeLabels(entry.missing),followUp:normalizeFollowUp(entry.followUp)};
+        return {token:entry.token,lawyer:entry.lawyer,clientName,items:safeLabels(entry.items),maxFileSizeMB:fileSizeLimit(entry.maxFileSizeMB),createdAt:Number(entry.createdAt)||0,revoked:Boolean(entry.revoked),submittedAt:Number(entry.submittedAt)||0,deletedAt:Number(entry.deletedAt)||0,received:safeLabels(entry.received,40),missing:safeLabels(entry.missing),followUp:normalizeFollowUp(entry.followUp,entry.maxFileSizeMB)};
       });
-    if(migratedName||parsed.some(entry=>entry&&typeof entry==='object'&&('passwordSalt' in entry||'passwordHash' in entry)))persistInvitations(invitations);
+    // Une lecture ne réécrit jamais l'état partagé ; la prochaine mutation verrouillée le normalise.
     return invitations;
   }catch{return []}
 }
-function persistInvitations(next){try{localStorage.setItem(invitationStorageKey,JSON.stringify(next.slice(-40)));return true}catch{return false}}
+function persistInvitations(next){try{localStorage.setItem(invitationStorageKey,JSON.stringify(next));return true}catch{return false}}
 function invitationUrl(token){const url=new URL('client.html',location.href);url.searchParams.set('invite',token);return url.toString()}
-function invitationState(invitation){return invitation.deletedAt?'Supprimé':invitation.submittedAt?'Reçu':invitation.revoked?'Révoqué':invitation.expiresAt<=Date.now()?'Expiré':'Actif'}
+function invitationState(invitation){return invitation.deletedAt?'Dossier supprimé':invitation.revoked?'Lien supprimé':invitation.submittedAt?'Reçu':'Actif'}
 function invitationReference(invitation){return `M-${invitation.token.slice(0,8).toUpperCase()}`}
 function dossierUrl(token){const url=new URL('dossier.html',location.href);url.searchParams.set('id',token);return url.toString()}
 function supplementUrl(token){const url=new URL('complement.html',location.href);url.searchParams.set('request',token);return url.toString()}
 function updateInvitation(token,change){const next=loadInvitations().map(entry=>entry.token===token?{...entry,...change}:entry);return persistInvitations(next)}
-function requestSignature(request){return JSON.stringify([request.lawyer,request.items.filter(item=>item.selected).map(item=>item.label)])}
+function commitInitialDeposit(token,{identity,entries,received,missing}){
+  return withInvitationLock(async()=>{
+    const latest=loadInvitations().find(entry=>entry.token===token);
+    if(!latest||invitationState(latest)!=='Actif')throw new Error('Ce lien ne permet plus de déposer des pièces. Demandez une nouvelle invitation au cabinet.');
+    await QualityStore.saveBatch(token,entries);
+    if(!saveCaseIdentity(token,identity))throw new Error('Le navigateur ne peut pas conserver les informations fictives. Autorisez le stockage de session puis réessayez.');
+    if(!updateInvitation(token,{clientName:safeClientName(`${identity.firstName} ${identity.lastName}`),submittedAt:Date.now(),received,missing})){
+      deleteCaseIdentity(token);throw new Error('Le navigateur ne peut pas enregistrer ce dépôt de démonstration. Autorisez le stockage local puis réessayez.');
+    }
+  });
+}
+function commitSupplementDeposit(token,request,{entries,receivedNow,missingNow}){
+  return withInvitationLock(async()=>{
+    const latest=loadInvitations().find(entry=>entry.token===token);
+    if(!latest||latest.deletedAt||latest.followUp?.token!==request.token||latest.followUp.submittedAt||latest.followUp.revoked)throw new Error('Ce lien ne permet plus de transmettre des pièces. Contactez le cabinet.');
+    if(latest.followUp.revision!==request.revision)throw new Error('La demande a changé. Actualisez cette page pour consulter les pièces et la taille maximale à jour avant de transmettre.');
+    await QualityStore.saveBatch(token,entries);
+    const received=new Set(latest.received),missing=new Set(latest.missing);
+    receivedNow.forEach(label=>{received.add(label);missing.delete(label)});
+    missingNow.forEach(label=>{if(!received.has(label))missing.add(label)});
+    const allItems=new Set([...latest.items,...latest.followUp.items]);
+    const followUp={...latest.followUp,submittedAt:Date.now(),received:receivedNow,missing:missingNow};
+    if(!updateInvitation(token,{items:[...allItems],received:[...received],missing:[...missing],followUp}))throw new Error('Le navigateur ne peut pas enregistrer ce complément fictif. Autorisez le stockage local puis réessayez.');
+    return {missing:[...missing]};
+  });
+}
+function requestSignature(request){return JSON.stringify([request.lawyer,request.items.filter(item=>item.selected).map(item=>item.label),fileSizeLimit(request.maxFileSizeMB)])}
 function loadUserTemplates(){
   try {
     const parsed=JSON.parse(localStorage.getItem(templateStorageKey));
@@ -106,7 +140,7 @@ function templatesFor(lawyer){
 }
 function findTemplate(lawyer,id){return templatesFor(lawyer).find(set=>set.id===id)}
 function requestItems(labels){return labels.map(label=>({label,selected:true,custom:false}))}
-const defaultRequest = () => ({lawyer:'lydie',templateId:'base:0',items:requestItems(templates.lydie.sets[0].items)});
+const defaultRequest = () => ({lawyer:'lydie',templateId:'base:0',maxFileSizeMB:10,items:requestItems(templates.lydie.sets[0].items)});
 function safeRequest(){
   try {
     const parsed = JSON.parse(sessionStorage.getItem(storageKey));
@@ -114,9 +148,9 @@ function safeRequest(){
     const migratedId=Number.isInteger(parsed.set)?`base:${parsed.set}`:'base:0';
     const templateId=typeof parsed.templateId==='string'?parsed.templateId:migratedId;
     const chosen=findTemplate(parsed.lawyer,templateId);
-    if(!chosen)return {lawyer:parsed.lawyer,templateId:'base:0',items:requestItems(templates[parsed.lawyer].sets[0].items)};
+    if(!chosen)return {lawyer:parsed.lawyer,templateId:'base:0',maxFileSizeMB:fileSizeLimit(parsed.maxFileSizeMB),items:requestItems(templates[parsed.lawyer].sets[0].items)};
     const items = parsed.items.filter(x=>x && typeof x.label==='string' && x.label.trim() && x.label.length<=120).slice(0,30).map(x=>({label:x.label,selected:Boolean(x.selected),custom:Boolean(x.custom)}));
-    return {lawyer:parsed.lawyer,templateId,items};
+    return {lawyer:parsed.lawyer,templateId,maxFileSizeMB:fileSizeLimit(parsed.maxFileSizeMB),items};
   } catch { return defaultRequest(); }
 }
 function saveRequest(request){try{sessionStorage.setItem(storageKey,JSON.stringify(request));}catch{/* L'aperçu reste utilisable sans stockage de session. */}}
@@ -154,10 +188,19 @@ function initLawyer(){
     const field=document.createElement('textarea');field.value=value;field.style.position='fixed';field.style.opacity='0';document.body.append(field);field.select();
     const copied=document.execCommand('copy');field.remove();report(copied?`${label} copié.`:'Copie indisponible : sélectionnez la valeur affichée pour la copier.');
   }
-  function revokeInvitation(token){
-    const current=loadInvitations();const target=current.find(entry=>entry.token===token);if(!target)return;
-    if(!persistInvitations(current.map(entry=>entry.token===token?{...entry,revoked:true}:entry))){setInvitationStatus('Impossible de révoquer ce lien dans ce navigateur.');return}
-    setInvitationStatus(`Le lien ${invitationReference(target)} est révoqué.`);renderInvitations();
+  async function revokeInvitation(token,button){
+    if(button?.disabled)return;
+    if(button)button.disabled=true;
+    try {
+      const target=await withInvitationLock(()=>{
+        const current=loadInvitations(),target=current.find(entry=>entry.token===token);
+        if(!target||target.deletedAt)throw new Error('Ce dossier n’est plus disponible. Actualisez cette page.');
+        if(!updateInvitation(token,{revoked:true}))throw new Error('Impossible de supprimer ce lien dans ce navigateur.');
+        return target;
+      });
+      setInvitationStatus(`Le lien ${invitationReference(target)} est supprimé et ne permet plus de dépôt.`);renderInvitations();
+    }catch(error){setInvitationStatus(error.message||'Impossible de supprimer ce lien.')}
+    finally{if(button)button.disabled=false}
   }
   function renderReceived(){
     const container=document.querySelector('#received-list');container.replaceChildren();
@@ -178,21 +221,21 @@ function initLawyer(){
   function renderInvitations(){
     const all=loadInvitations().filter(entry=>entry.lawyer===request.lawyer).reverse();
     const signature=requestSignature(request);
-    const active=all.find(entry=>invitationState(entry)==='Actif'&&JSON.stringify([entry.lawyer,entry.items])===signature);
+    const active=all.find(entry=>invitationState(entry)==='Actif'&&JSON.stringify([entry.lawyer,entry.items,entry.maxFileSizeMB])===signature);
     currentInviteToken=active?.token||null;invitationResult.hidden=!active;
     if(active){
       document.querySelector('#invitation-url').value=invitationUrl(active.token);
-      document.querySelector('#invitation-expiry').textContent=`${invitationReference(active)} · valable jusqu’au ${formatDate(active.expiresAt)}. La demande est destinée à ${templates[active.lawyer].name}.`;
+      document.querySelector('#invitation-details').textContent=`${invitationReference(active)} · sans expiration · ${active.maxFileSizeMB} Mo maximum par fichier. La demande est destinée à ${templates[active.lawyer].name}.`;
       document.querySelector('#open-invitation').href=invitationUrl(active.token);
     }
     invitationHistory.hidden=all.length===0;
     const historyList=document.querySelector('#invitation-list');historyList.replaceChildren();
-    all.slice(0,8).forEach(entry=>{
+    all.forEach(entry=>{
       const state=invitationState(entry);const row=element('li');
-      row.append(element('span','',invitationReference(entry)),element('span','history-meta',`${state} · jusqu’au ${formatDate(entry.expiresAt)} · ${entry.items.length} pièce(s) + identité`));
+      row.append(element('span','',invitationReference(entry)),element('span','history-meta',`${state} · créé le ${formatDate(entry.createdAt)} · ${entry.maxFileSizeMB} Mo/fichier · ${entry.items.length} pièce(s) + identité`));
       if(state==='Actif'){
         const actions=element('span','history-actions');const copy=element('button','','Copier');copy.type='button';copy.setAttribute('aria-label',`Copier le lien ${invitationReference(entry)}`);copy.addEventListener('click',()=>copyText(invitationUrl(entry.token),'Lien'));
-        const revoke=element('button','','Révoquer');revoke.type='button';revoke.setAttribute('aria-label',`Révoquer le lien ${invitationReference(entry)}`);revoke.addEventListener('click',()=>revokeInvitation(entry.token));actions.append(copy,revoke);row.append(actions);
+        const revoke=element('button','','Supprimer le lien');revoke.type='button';revoke.setAttribute('aria-label',`Supprimer le lien ${invitationReference(entry)}`);revoke.addEventListener('click',()=>revokeInvitation(entry.token,revoke));actions.append(copy,revoke);row.append(actions);
       }
       historyList.append(row);
     });
@@ -283,6 +326,7 @@ function initLawyer(){
   function titleInUse(title,exceptId){return templatesFor(request.lawyer).some(set=>set.id!==exceptId&&set.title.toLocaleLowerCase('fr')===title.toLocaleLowerCase('fr'))}
   function render(){
     lawyerSelect.value=request.lawyer;
+    document.querySelector('#max-file-size').value=String(request.maxFileSizeMB);
     templateLawyerSelect.value=request.lawyer;
     [templateSelect,templateManageSelect].forEach(select=>{
       select.replaceChildren();
@@ -309,6 +353,7 @@ function initLawyer(){
     updatePreview();
   }
   function updatePreview(){document.querySelector('#preview-lawyer').textContent=templates[request.lawyer].name;document.querySelector('#selected-count').textContent=String(request.items.filter(x=>x.selected).length);saveRequest(request);renderInvitations()}
+  document.querySelector('#max-file-size').addEventListener('change',event=>{request.maxFileSizeMB=fileSizeLimit(event.target.value);setInvitationStatus('La limite sera appliquée aux nouveaux liens. Les liens déjà créés gardent leur limite.');updatePreview()});
   lawyerSelect.addEventListener('change',()=>{if(!closeTemplateEditor()){lawyerSelect.value=request.lawyer;return}request.lawyer=lawyerSelect.value;document.querySelector('#demo-case-result').hidden=true;activateTemplate('base:0')});
   templateSelect.addEventListener('change',()=>{if(!closeTemplateEditor()){templateSelect.value=request.templateId;return}activateTemplate(templateSelect.value)});
   templateLawyerSelect.addEventListener('change',()=>{if(!closeTemplateEditor()){templateLawyerSelect.value=request.lawyer;return}request.lawyer=templateLawyerSelect.value;document.querySelector('#demo-case-result').hidden=true;activateTemplate('base:0')});
@@ -349,27 +394,33 @@ function initLawyer(){
     if(!persistUserTemplates(userTemplates.filter(set=>set.id!==selected.id))){showTemplateError('Impossible de supprimer dans ce navigateur.');return}
     closeTemplateEditor(true);activateTemplate('base:0');setStatus(`La liste type « ${selected.title} » a été supprimée de ce navigateur.`);
   });
-  document.querySelector('#generate-invitation').addEventListener('click',()=>{
+  document.querySelector('#generate-invitation').addEventListener('click',async event=>{
+    const button=event.currentTarget;if(button.disabled)return;button.disabled=true;
     try {
-    const days=Number(document.querySelector('#invitation-validity').value);const now=Date.now();
-    const invitation={token:crypto.randomUUID(),lawyer:request.lawyer,items:request.items.filter(item=>item.selected).map(item=>item.label),createdAt:now,expiresAt:now+days*86400000,revoked:false,submittedAt:0,deletedAt:0,received:[],missing:[]};
-    if(!persistInvitations([...loadInvitations(),invitation])){setInvitationStatus('Impossible de créer le lien : le stockage local du navigateur est indisponible.');return}
-    setInvitationStatus(`Lien ${invitationReference(invitation)} créé pour ${templates[request.lawyer].name}. Aucun e-mail n’a été envoyé.`);renderInvitations();
-    } catch {setInvitationStatus('Impossible de créer le lien dans ce navigateur. Vérifiez que la page est ouverte en HTTPS ou sur 127.0.0.1.');}
+    const now=Date.now();
+    const invitation={token:crypto.randomUUID(),lawyer:request.lawyer,items:request.items.filter(item=>item.selected).map(item=>item.label),maxFileSizeMB:fileSizeLimit(request.maxFileSizeMB),createdAt:now,revoked:false,submittedAt:0,deletedAt:0,received:[],missing:[]};
+    await withInvitationLock(()=>{if(!persistInvitations([...loadInvitations(),invitation]))throw new Error('Impossible de créer le lien : le stockage local du navigateur est indisponible.')});
+    setInvitationStatus(`Lien ${invitationReference(invitation)} créé pour ${templates[invitation.lawyer].name}. Aucun e-mail n’a été envoyé.`);renderInvitations();
+    } catch(error) {setInvitationStatus(error.message||'Impossible de créer le lien dans ce navigateur. Vérifiez que la page est ouverte en HTTPS ou sur 127.0.0.1.');}
+    finally{button.disabled=false}
   });
   document.querySelector('#copy-invitation').addEventListener('click',()=>{if(currentInviteToken)copyText(invitationUrl(currentInviteToken),'Lien')});
-  document.querySelector('#revoke-invitation').addEventListener('click',()=>{if(currentInviteToken)revokeInvitation(currentInviteToken)});
-  document.querySelector('#create-demo-case').addEventListener('click',()=>{
+  document.querySelector('#revoke-invitation').addEventListener('click',event=>{if(currentInviteToken)revokeInvitation(currentInviteToken,event.currentTarget)});
+  document.querySelector('#create-demo-case').addEventListener('click',async event=>{
+    const button=event.currentTarget;if(button.disabled)return;button.disabled=true;
     try {
       const now=Date.now(),items=request.items.filter(item=>item.selected).map(item=>item.label);
-      const invitation={token:crypto.randomUUID(),lawyer:request.lawyer,clientName:'Camille DÉMONSTRATION',items,createdAt:now,expiresAt:now+7*86400000,revoked:false,submittedAt:now,deletedAt:0,received:['État civil','Pièce d’identité — recto','Pièce d’identité — verso',...items.slice(0,2)],missing:items.slice(2)};
-      if(!persistInvitations([...loadInvitations(),invitation]))throw new Error('storage');
-      saveCaseIdentity(invitation.token,{firstName:'Camille',lastName:'DÉMONSTRATION',birthDate:'1980-01-01',email:'camille@example.invalid',address:'1 rue de démonstration',postalCode:'00000',city:'Créteil'});
+      const invitation={token:crypto.randomUUID(),lawyer:request.lawyer,clientName:'Camille DÉMONSTRATION',items,maxFileSizeMB:fileSizeLimit(request.maxFileSizeMB),createdAt:now,revoked:false,submittedAt:now,deletedAt:0,received:['État civil','Pièce d’identité — recto','Pièce d’identité — verso',...items.slice(0,2)],missing:items.slice(2)};
+      await withInvitationLock(()=>{
+        if(!persistInvitations([...loadInvitations(),invitation]))throw new Error('Impossible de créer un dossier fictif : le stockage local est indisponible.');
+        saveCaseIdentity(invitation.token,{firstName:'Camille',lastName:'DÉMONSTRATION',birthDate:'1980-01-01',profession:'Profession fictive',nationality:'Nationalité fictive',email:'camille@example.invalid',address:'1 rue de démonstration',postalCode:'00000',city:'Créteil'});
+      });
       document.querySelector('#open-demo-case').href=dossierUrl(invitation.token);
       document.querySelector('#demo-case-result').hidden=false;
       document.querySelector('#demo-case-status').textContent=`Exemple ${invitationReference(invitation)} créé. Vous pouvez ouvrir le dossier directement.`;
       renderReceived();
-    }catch{document.querySelector('#demo-case-status').textContent='Impossible de créer un dossier fictif dans ce navigateur.'}
+    }catch(error){document.querySelector('#demo-case-status').textContent=error.message||'Impossible de créer un dossier fictif dans ce navigateur.'}
+    finally{button.disabled=false}
   });
   document.querySelector('#received-search').addEventListener('input',renderReceived);
   render();
@@ -383,10 +434,12 @@ function initClient(){
   if(token&&(!invitation||invitationState(invitation)!=='Actif')){
     form.hidden=true;document.querySelector('#invalid-invitation').hidden=false;
     document.querySelector('#client-lawyer').textContent='Cabinet MODENA Advocatus';
-    document.querySelector('#invalid-invitation-reason').textContent=invitation?.deletedAt?'Ce dossier a été supprimé. Demandez une nouvelle invitation au cabinet.':invitation?.submittedAt?'Cette demande a déjà été transmise. Contactez le cabinet pour ajouter une pièce.':invitation?.revoked?'Ce lien a été révoqué par le cabinet. Demandez une nouvelle invitation.':invitation?'Ce lien a expiré. Demandez une nouvelle invitation au cabinet.':'Ce lien est inconnu dans ce navigateur de démonstration. Demandez une nouvelle invitation au cabinet.';
+    document.querySelector('#invalid-invitation-reason').textContent=invitation?.deletedAt?'Ce dossier a été supprimé. Demandez une nouvelle invitation au cabinet.':invitation?.revoked?'Ce lien a été supprimé par le cabinet. Demandez une nouvelle invitation.':invitation?.submittedAt?'Cette demande a déjà été transmise. Contactez le cabinet pour ajouter une pièce.':'Ce lien est inconnu dans ce navigateur de démonstration. Demandez une nouvelle invitation au cabinet.';
     return;
   }
-  const request=invitation?{lawyer:invitation.lawyer,items:requestItems(invitation.items)}:safeRequest();
+  const request=invitation?{lawyer:invitation.lawyer,maxFileSizeMB:invitation.maxFileSizeMB,items:requestItems(invitation.items)}:safeRequest();
+  const maxFileSizeMB=fileSizeLimit(request.maxFileSizeMB);
+  document.querySelectorAll('.identity-files small').forEach(help=>{help.textContent=fileSizeHelp(maxFileSizeMB)});
   document.querySelector('#client-lawyer').textContent=templates[request.lawyer].name;
   if(invitation){document.querySelector('.client-intro .eyebrow').textContent=`Invitation ${invitationReference(invitation)} · démonstration`;}
   const documentList=document.querySelector('#client-document-list');
@@ -396,16 +449,21 @@ function initClient(){
     const section=element('section','client-document');
     const heading=element('h4','',`${String(index+1).padStart(2,'0')}. ${item.label}`);
     const fileLabel=element('label','upload-field');fileLabel.append(element('span','','Document à transmettre'));
-    const input=element('input');input.type='file';input.name=`piece-${index}`;input.accept=fileAccept;input.setAttribute('aria-label',`Fichier : ${item.label}`);fileLabel.append(input,element('small','','PDF, JPG ou PNG · 10 Mo maximum'));
+    const input=element('input');input.type='file';input.name=`piece-${index}`;input.accept=fileAccept;input.setAttribute('aria-label',`Fichier : ${item.label}`);fileLabel.append(input,element('small','',fileSizeHelp(maxFileSizeMB)));
     const unavailableLabel=element('label','unavailable');const checkbox=element('input');checkbox.type='checkbox';checkbox.name=`missing-${index}`;unavailableLabel.append(checkbox,element('span','','Je n’ai pas cette pièce'));
     checkbox.addEventListener('change',()=>{section.classList.toggle('is-unavailable',checkbox.checked);input.disabled=checkbox.checked;if(checkbox.checked)input.value=''});
     section.append(heading,fileLabel,unavailableLabel);documentList.append(section);
   });
   if(!requested.length)documentList.append(element('p','section-description','Aucune pièce complémentaire n’a été demandée.'));
+  const quality=QualityClient.attach({form,maxFileSizeMB,bindings:[
+    {input:form.elements.idFront,label:'Pièce d’identité — recto'},
+    {input:form.elements.idBack,label:'Pièce d’identité — verso'},
+    ...requested.map((item,index)=>({input:form.elements[`piece-${index}`],label:item.label,unavailable:form.elements[`missing-${index}`]}))
+  ]});
   function showStep(step){
     document.querySelectorAll('[data-step]').forEach(panel=>{panel.hidden=Number(panel.dataset.step)!==step});
-    document.querySelectorAll('[data-step-label]').forEach(label=>{label.classList.toggle('is-current',Number(label.dataset.stepLabel)===step)});
-    const panel=document.querySelector(`[data-step="${step}"]`);const heading=panel.querySelector('h2');heading?.setAttribute('tabindex','-1');heading?.focus({preventScroll:true});window.scrollTo({top:0,behavior:'smooth'});
+    document.querySelectorAll('[data-step-label]').forEach(label=>{const current=Number(label.dataset.stepLabel)===step;label.classList.toggle('is-current',current);if(current)label.setAttribute('aria-current','step');else label.removeAttribute('aria-current')});
+    const panel=document.querySelector(`[data-step="${step}"]`);const heading=panel.querySelector('h2');heading?.setAttribute('tabindex','-1');heading?.focus({preventScroll:true});panel.scrollIntoView({block:'start',behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});
   }
   function validateIdentity(){
     for(const input of form.querySelectorAll('[data-step="1"] input')){if(!input.checkValidity()){input.reportValidity();input.focus();return false}}
@@ -418,10 +476,10 @@ function initClient(){
       if(input.disabled)continue;
       if(input.name.startsWith('piece-')&&!input.files.length){input.setCustomValidity('Ajoutez ce document ou cochez « Je n’ai pas cette pièce ».');input.reportValidity();input.focus();return false}
       input.setCustomValidity('');
-      if(input.files[0]&&input.files[0].size>10*1024*1024){input.setCustomValidity('Ce fichier dépasse 10 Mo.');input.reportValidity();input.focus();return false}
+      const sizeError=fileSizeError(input.files[0],maxFileSizeMB);if(sizeError){input.setCustomValidity(sizeError);input.reportValidity();input.focus();return false}
       const file=input.files[0];if(file&&!/\.(pdf|jpe?g|png)$/i.test(file.name)){input.setCustomValidity('Choisissez un fichier PDF, JPG ou PNG.');input.reportValidity();input.focus();return false}
     }
-    return true;
+    return quality.validate();
   }
   form.addEventListener('change',event=>{if(event.target.type==='file')event.target.setCustomValidity('')});
   document.querySelectorAll('[data-next]').forEach(button=>button.addEventListener('click',()=>{const next=Number(button.dataset.next);if(next===2&&validateIdentity())showStep(2);if(next===3&&validateFiles()){renderReview();showStep(3)}}));
@@ -429,22 +487,24 @@ function initClient(){
   function reviewGroup(title,rows){const group=element('section','review-group');group.append(element('h3','',title));const list=element('ul');rows.forEach(([label,value])=>{const item=element('li');item.append(element('span','',label),element('span','',value));list.append(item)});group.append(list);return group}
   function renderReview(){
     const summary=document.querySelector('#review-content');summary.replaceChildren();
-    const data=new FormData(form);summary.append(reviewGroup('État civil',[["Nom",`${data.get('firstName')} ${data.get('lastName')}`],["Date de naissance",String(data.get('birthDate'))],["Adresse e-mail",String(data.get('email'))],["Adresse",`${data.get('address')}, ${data.get('postalCode')} ${data.get('city')}`]]));
+    const data=new FormData(form);summary.append(reviewGroup('État civil',[["Nom",`${data.get('firstName')} ${data.get('lastName')}`],["Date de naissance",String(data.get('birthDate'))],["Profession",String(data.get('profession'))],["Nationalité",String(data.get('nationality'))],["Adresse e-mail",String(data.get('email'))],["Adresse",`${data.get('address')}, ${data.get('postalCode')} ${data.get('city')}`]]));
     summary.append(reviewGroup('Pièce d’identité',[["Recto",form.elements.idFront.files[0].name],["Verso",form.elements.idBack.files[0].name]]));
     if(requested.length)summary.append(reviewGroup('Pièces du dossier',requested.map((item,index)=>[item.label,form.elements[`missing-${index}`].checked?'Pièce non disponible':form.elements[`piece-${index}`].files[0].name])));
     summary.append(reviewGroup('Réception prévue',[["Avocat destinataire",templates[request.lawyer].name],["Référence",invitation?invitationReference(invitation):'Aperçu sans invitation'],["Notification",'E-mail de signalement, sans pièce jointe']]));
   }
-  document.querySelector('#finish-demo').addEventListener('click',()=>{
+  let submissionInProgress=false;
+  document.querySelector('#finish-demo').addEventListener('click',async()=>{
+    if(submissionInProgress)return;
+    if(!quality.validate()){showStep(2);quality.validate();return}
+    submissionInProgress=true;form.inert=true;
+    try {
     if(invitation){
-      const latest=loadInvitations().find(entry=>entry.token===invitation.token);
-      if(!latest||invitationState(latest)!=='Actif'){alert('Ce lien ne permet plus de déposer des pièces. Demandez une nouvelle invitation au cabinet.');return}
       const data=new FormData(form);
       const identity=Object.fromEntries(identityFields.map(field=>[field,data.get(field)]));
-      if(!saveCaseIdentity(invitation.token,identity)){alert('Le navigateur ne peut pas conserver les informations fictives pour l’aperçu de l’avis. Réessayez après avoir autorisé le stockage de session.');return}
       const received=['État civil','Pièce d’identité — recto','Pièce d’identité — verso'];
       const missing=[];
       requested.forEach((item,index)=>{(form.elements[`missing-${index}`].checked?missing:received).push(item.label)});
-      if(!updateInvitation(invitation.token,{clientName:safeClientName(`${identity.firstName} ${identity.lastName}`),submittedAt:Date.now(),received,missing})){deleteCaseIdentity(invitation.token);alert('Le navigateur ne peut pas enregistrer ce dépôt de démonstration. Réessayez après avoir autorisé le stockage local.');return}
+      await commitInitialDeposit(invitation.token,{identity,entries:quality.entries(),received,missing});
       document.querySelector('#completion-reference').textContent=invitationReference(invitation);
       document.querySelector('#completion-counts').textContent=`${pieceCount(received.length)} indiquée${received.length>1?'s':''} comme présente${received.length>1?'s':''} · ${pieceCount(missing.length)} indisponible${missing.length>1?'s':''}.`;
       const missingBlock=document.querySelector('#completion-missing-block');missingBlock.hidden=missing.length===0;
@@ -458,6 +518,9 @@ function initClient(){
       document.querySelector('.completion-demo-link a').textContent='Revenir à l’espace cabinet →';
     }
     form.hidden=true;document.querySelector('.client-intro').hidden=true;document.querySelector('.client-rail').hidden=true;document.querySelector('.client-layout').classList.add('is-complete');document.querySelector('#completion').hidden=false;const heading=document.querySelector('#completion-title');heading.setAttribute('tabindex','-1');heading.focus({preventScroll:true});window.scrollTo({top:0,behavior:'smooth'});
+    quality.destroy();
+    }catch(error){alert(error.message||'Le dépôt n’a pas pu être finalisé. Réessayez.')}
+    finally{submissionInProgress=false;form.inert=false}
   });
   form.addEventListener('submit',event=>event.preventDefault());
 }
@@ -466,62 +529,66 @@ function initSupplement(){
   const invitation=loadInvitations().find(entry=>entry.followUp?.token===token);
   const request=invitation?.followUp;
   const unavailable=document.querySelector('#supplement-unavailable');
-  function showUnavailable(message,canRefresh=false){document.querySelector('#supplement-content').hidden=true;unavailable.hidden=false;document.querySelector('#supplement-unavailable-title').textContent=canRefresh?'La liste des pièces a changé.':'Cette demande n’est plus accessible.';document.querySelector('#supplement-unavailable-reason').textContent=message;const refresh=document.querySelector('#supplement-reload');refresh.hidden=!canRefresh;if(canRefresh)refresh.href=location.href}
+  function showUnavailable(message,canRefresh=false){document.querySelector('#supplement-content').hidden=true;unavailable.hidden=false;document.querySelector('#supplement-unavailable-title').textContent=canRefresh?'La demande a changé.':'Cette demande n’est plus accessible.';document.querySelector('#supplement-unavailable-reason').textContent=message;const refresh=document.querySelector('#supplement-reload');refresh.hidden=!canRefresh;if(canRefresh)refresh.href=location.href}
   if(!invitation||!request){showUnavailable('Ce lien est inconnu ou a été remplacé par une demande plus récente. Vérifiez que vous utilisez le dernier lien transmis par le cabinet.');return}
   if(invitation.deletedAt){showUnavailable('Ce dossier a été supprimé. Contactez le cabinet.');return}
   if(request.submittedAt){showUnavailable('Ce lien a déjà été utilisé. Contactez le cabinet si vous devez transmettre une autre pièce.');return}
-  if(request.expiresAt<=Date.now()){showUnavailable('Ce lien a expiré. Demandez un nouveau lien au cabinet.');return}
+  if(request.revoked){showUnavailable('Ce lien a été supprimé par le cabinet. Demandez une nouvelle invitation.');return}
   document.querySelector('#supplement-content').hidden=false;
   document.querySelector('#supplement-lawyer').textContent=templates[invitation.lawyer].name;
   document.querySelector('#supplement-reference').textContent=invitationReference(invitation);
   const form=document.querySelector('#supplement-form');
   const list=document.querySelector('#supplement-items');
+  const maxFileSizeMB=fileSizeLimit(request.maxFileSizeMB);
   request.items.forEach((label,index)=>{
     const section=element('section','client-document');
     section.append(element('h3','',`${String(index+1).padStart(2,'0')}. ${label}`));
+    if(request.reasons?.[label])section.append(element('p','dq-reason',`Demande du cabinet : ${request.reasons[label]}`));
     const fileLabel=element('label','upload-field');fileLabel.append(element('span','','Document à transmettre'));
     const input=element('input');input.type='file';input.name=`supplement-piece-${index}`;input.accept='.pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png';input.setAttribute('aria-label',`Fichier : ${label}`);
-    fileLabel.append(input,element('small','','PDF, JPG ou PNG · 10 Mo maximum'));
+    fileLabel.append(input,element('small','',fileSizeHelp(maxFileSizeMB)));
     const missingLabel=element('label','unavailable');const checkbox=element('input');checkbox.type='checkbox';checkbox.name=`supplement-missing-${index}`;
     missingLabel.append(checkbox,element('span','','Je n’ai toujours pas cette pièce'));
     checkbox.addEventListener('change',()=>{section.classList.toggle('is-unavailable',checkbox.checked);input.disabled=checkbox.checked;if(checkbox.checked)input.value=''});
     section.append(fileLabel,missingLabel);list.append(section);
   });
+  const quality=QualityClient.attach({form,maxFileSizeMB,bindings:request.items.map((label,index)=>({input:form.elements[`supplement-piece-${index}`],label,unavailable:form.elements[`supplement-missing-${index}`]}))});
   form.addEventListener('change',event=>{if(event.target.type==='file')event.target.setCustomValidity('')});
-  form.addEventListener('submit',event=>{
+  let submissionInProgress=false;
+  form.addEventListener('submit',async event=>{
     event.preventDefault();
+    if(submissionInProgress)return;
     const latest=loadInvitations().find(entry=>entry.token===invitation.token);
-    if(!latest||latest.deletedAt||latest.followUp?.token!==token||latest.followUp.submittedAt||latest.followUp.expiresAt<=Date.now()){
+    if(!latest||latest.deletedAt||latest.followUp?.token!==token||latest.followUp.submittedAt||latest.followUp.revoked){
       showUnavailable('Ce lien ne permet plus de transmettre des pièces. Contactez le cabinet.');return;
     }
-    if(latest.followUp.revision!==request.revision){showUnavailable('La liste des pièces a changé depuis l’ouverture de cette page. Actualisez la demande pour voir la liste à jour.',true);return}
+    if(latest.followUp.revision!==request.revision){showUnavailable('Les pièces demandées ou la taille maximale ont changé depuis l’ouverture de cette page. Actualisez la demande pour voir les consignes à jour.',true);return}
     for(const input of form.querySelectorAll('input[type=file]')){
       if(input.disabled)continue;
       const file=input.files[0];
       if(!file){input.setCustomValidity('Ajoutez ce document ou cochez « Je n’ai toujours pas cette pièce ».');input.reportValidity();input.focus();return}
-      if(file.size>10*1024*1024){input.setCustomValidity('Ce fichier dépasse 10 Mo.');input.reportValidity();input.focus();return}
+      const sizeError=fileSizeError(file,maxFileSizeMB);if(sizeError){input.setCustomValidity(sizeError);input.reportValidity();input.focus();return}
       if(!/\.(pdf|jpe?g|png)$/i.test(file.name)){input.setCustomValidity('Choisissez un fichier PDF, JPG ou PNG.');input.reportValidity();input.focus();return}
       input.setCustomValidity('');
     }
+    if(!quality.validate())return;
+    submissionInProgress=true;form.inert=true;
+    try {
     const receivedNow=[],missingNow=[];
     request.items.forEach((label,index)=>{(form.elements[`supplement-missing-${index}`].checked?missingNow:receivedNow).push(label)});
-    const received=new Set(latest.received),missing=new Set(latest.missing);
-    receivedNow.forEach(label=>{received.add(label);missing.delete(label)});
-    missingNow.forEach(label=>{if(!received.has(label))missing.add(label)});
-    const allItems=new Set([...latest.items,...request.items]);
-    const followUp={...latest.followUp,submittedAt:Date.now(),received:receivedNow,missing:missingNow};
-    if(!updateInvitation(invitation.token,{items:[...allItems],received:[...received],missing:[...missing],followUp})){
-      alert('Le navigateur ne peut pas enregistrer ce complément fictif. Réessayez après avoir autorisé le stockage local.');return;
-    }
+    const {missing}=await commitSupplementDeposit(invitation.token,request,{entries:quality.entries(),receivedNow,missingNow});
     document.querySelector('.supplement-layout').hidden=true;
     document.querySelector('.client-intro').hidden=true;
     const completion=document.querySelector('#supplement-completion');completion.hidden=false;
     document.querySelector('#supplement-completion-reference').textContent=invitationReference(invitation);
     document.querySelector('#supplement-completion-counts').textContent=`${pieceCount(receivedNow.length)} ajoutée${receivedNow.length>1?'s':''} · ${pieceCount(missingNow.length)} encore indisponible${missingNow.length>1?'s':''}.`;
-    const remainingBlock=document.querySelector('#supplement-remaining-block');remainingBlock.hidden=missing.size===0;
-    document.querySelector('#supplement-remaining-list').replaceChildren(...[...missing].map(label=>element('li','',label)));
+    const remainingBlock=document.querySelector('#supplement-remaining-block');remainingBlock.hidden=missing.length===0;
+    document.querySelector('#supplement-remaining-list').replaceChildren(...missing.map(label=>element('li','',label)));
     document.querySelector('#supplement-open-case').href=dossierUrl(invitation.token);
     const heading=document.querySelector('#supplement-completion-title');heading.setAttribute('tabindex','-1');heading.focus({preventScroll:true});window.scrollTo({top:0,behavior:'smooth'});
+    quality.destroy();
+    }catch(error){quality.message(error.message||'Le complément n’a pas pu être finalisé.')}
+    finally{submissionInProgress=false;form.inert=false}
   });
 }
 function demoPdf(lines){
@@ -561,18 +628,19 @@ function demoZip(files){
 }
 function archiveFor(invitation){
   const encoder=new TextEncoder(),reference=invitationReference(invitation);
-  const files=[{name:'00_Lisez-moi/NOTICE.txt',data:encoder.encode(`DEMONSTRATION ${reference}\n\nCette archive ne contient aucun document client.\nLes PDF ont ete crees pour illustrer le classement.\n`)}];
-  files.push({name:'01_Etat_civil/fiche-etat-civil.pdf',data:demoPdf(['MODENA - DOSSIER FICTIF','Etat civil de demonstration','Aucune donnee personnelle du formulaire client n est incluse.'])});
-  files.push({name:'02_Identite/recto.pdf',data:demoPdf(['MODENA - DOSSIER FICTIF','Piece d identite - recto','Aucune image ni document original n est inclus.'])});
-  files.push({name:'02_Identite/verso.pdf',data:demoPdf(['MODENA - DOSSIER FICTIF','Piece d identite - verso','Aucune image ni document original n est inclus.'])});
+  const files=[{name:`00_${reference}_notice.txt`,data:encoder.encode(`DEMONSTRATION ${reference}\n\nCette archive ne contient aucun document client.\nLes PDF ont ete crees pour illustrer le renommage.\nTous les fichiers sont a la racine, sans sous-dossier.\n`)}];
+  files.push({name:`01_${reference}_etat-civil.pdf`,data:demoPdf(['MODENA - DOSSIER FICTIF','Etat civil de demonstration','Profession : exemple fictif','Nationalite : exemple fictif','Aucune donnee personnelle du formulaire client n est incluse.'])});
+  files.push({name:`02_${reference}_identite-recto.pdf`,data:demoPdf(['MODENA - DOSSIER FICTIF','Piece d identite - recto','Aucune image ni document original n est inclus.'])});
+  files.push({name:`03_${reference}_identite-verso.pdf`,data:demoPdf(['MODENA - DOSSIER FICTIF','Piece d identite - verso','Aucune image ni document original n est inclus.'])});
   invitation.received.filter(label=>!['État civil','Pièce d’identité — recto','Pièce d’identité — verso'].includes(label)).forEach((label,index)=>{
     const slug=label.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,55)||'piece';
-    files.push({name:`03_Pieces/${String(index+1).padStart(2,'0')}-${slug}.pdf`,data:demoPdf(['MODENA - DOSSIER FICTIF',`Piece ${index+1} : ${label}`,'Le fichier choisi par le client n a pas ete lu.'])});
+    files.push({name:`${String(index+4).padStart(2,'0')}_${reference}_${slug}.pdf`,data:demoPdf(['MODENA - DOSSIER FICTIF',`Piece ${index+1} : ${label}`,'Le fichier original n est pas inclus dans ce ZIP fictif.'])});
   });
-  files.push({name:'00_Lisez-moi/pieces-manquantes.txt',data:encoder.encode(invitation.missing.length?`Pieces declarees indisponibles :\n${invitation.missing.map(label=>`- ${label}`).join('\n')}\n`:'Aucune piece declaree indisponible.\n')});
+  files.push({name:`99_${reference}_pieces-manquantes.txt`,data:encoder.encode(invitation.missing.length?`Pieces declarees indisponibles :\n${invitation.missing.map(label=>`- ${label}`).join('\n')}\n`:'Aucune piece declaree indisponible.\n')});
   return demoZip(files);
 }
 function initDossier(){
+  let qualityReview=null;
   const token=new URLSearchParams(location.search).get('id');
   const invitation=loadInvitations().find(entry=>entry.token===token);
   const unavailable=document.querySelector('#case-unavailable');
@@ -593,7 +661,7 @@ function initDossier(){
   const identity=loadCaseIdentity(invitation.token);
   if(identity){
     const formattedBirthDate=identity.birthDate?new Intl.DateTimeFormat('fr-FR').format(new Date(`${identity.birthDate}T00:00:00`)):'—';
-    const rows=[['Prénom',identity.firstName],['Nom',identity.lastName],['Date de naissance',formattedBirthDate],['Adresse e-mail',identity.email],['Adresse postale',identity.address],['Code postal',identity.postalCode],['Ville',identity.city]];
+    const rows=[['Prénom',identity.firstName],['Nom',identity.lastName],['Date de naissance',formattedBirthDate],['Profession',identity.profession],['Nationalité',identity.nationality],['Adresse e-mail',identity.email],['Adresse postale',identity.address],['Code postal',identity.postalCode],['Ville',identity.city]];
     const details=document.querySelector('#case-email-identity');
     rows.forEach(([label,value])=>details.append(element('dt','',label),element('dd','',value||'—')));
   }else{document.querySelector('#case-email-identity-unavailable').hidden=false}
@@ -608,7 +676,10 @@ function initDossier(){
   const followUpItems=document.querySelector('#followup-items');
   const followUpStatus=document.querySelector('#followup-status');
   const followUpExtra=document.querySelector('#followup-extra');
-  const openFollowUp=invitation.followUp&&!invitation.followUp.submittedAt&&invitation.followUp.expiresAt>Date.now()?invitation.followUp:null;
+  const openFollowUp=invitation.followUp&&!invitation.followUp.submittedAt&&!invitation.followUp.revoked?invitation.followUp:null;
+  const followUpReasons={...(openFollowUp?.reasons||{})};
+  const followUpSize=document.querySelector('#followup-max-file-size');
+  followUpSize.value=String(openFollowUp?.maxFileSizeMB??invitation.maxFileSizeMB);
   const extraItems=openFollowUp?openFollowUp.items.filter(label=>!invitation.items.includes(label)):[];
   const extraList=document.querySelector('#followup-extra-items');
   const extraListWrap=document.querySelector('#followup-extra-list-wrap');
@@ -618,6 +689,25 @@ function initDossier(){
       row.append(input,element('span','',label));followUpItems.append(row);
     });
   }else{followUpItems.append(element('p','field-help','Aucune pièce n’est actuellement signalée manquante. Vous pouvez ajouter de nouvelles pièces ci-dessous.'))}
+  function addReplacementChoice({label,reason},checked=true){
+    let input=[...followUpItems.querySelectorAll('input')].find(input=>input.value===label);
+    if(!input){
+      followUpItems.querySelector('p.field-help')?.remove();
+      const row=element('label','followup-choice');input=element('input');input.type='checkbox';input.value=label;
+      row.append(input,element('span','',`${label} · nouvelle copie`));followUpItems.append(row);
+    }
+    input.checked=checked;
+    if(reason)followUpReasons[label]=reason;
+  }
+  if(openFollowUp)openFollowUp.items.filter(label=>!invitation.missing.includes(label)&&!extraItems.includes(label)).forEach(label=>addReplacementChoice({label,reason:followUpReasons[label]}));
+  QualityStore.list(invitation.token).then(records=>{
+    if(loadInvitations().find(entry=>entry.token===invitation.token)?.deletedAt)return;
+    records.filter(record=>record.review?.status==='replacement').forEach(record=>addReplacementChoice({label:record.label,reason:record.review.reason},openFollowUp?openFollowUp.items.includes(record.label):true));
+  }).catch(()=>{/* Le module de revue affiche l’erreur de stockage. */});
+  QualityCabinet.mount({container:document.querySelector('#quality-cabinet'),caseToken:invitation.token,onReplacement:({label,reason})=>{
+    addReplacementChoice({label,reason});followUpStatus.textContent=`« ${label} » est sélectionnée pour une nouvelle copie. Enregistrez la demande ci-dessous pour créer le lien client.`;
+    followUpForm.scrollIntoView({block:'center',behavior:'smooth'});
+  }}).then(controller=>{qualityReview=controller;if(loadInvitations().find(entry=>entry.token===invitation.token)?.deletedAt)controller?.destroy()}).catch(error=>{document.querySelector('#quality-cabinet').textContent=error.message||'Impossible d’ouvrir les fichiers conservés dans ce navigateur.'});
   function renderExtraItems(){
     extraListWrap.hidden=extraItems.length===0;
     extraList.replaceChildren(...extraItems.map((label,index)=>{
@@ -639,37 +729,64 @@ function initDossier(){
   }
   function renderFollowUp(){
     const request=invitation.followUp;
-    const active=request&&!request.submittedAt&&request.expiresAt>Date.now();
+    const active=request&&!request.submittedAt&&!request.revoked;
     document.querySelector('#followup-result').hidden=!active;
     if(active){
       const url=supplementUrl(request.token);
       document.querySelector('#followup-url').value=url;
       document.querySelector('#open-followup-url').href=url;
-      followUpStatus.textContent=`Demande en cours : ${pieceCount(request.items.length)} demandée${request.items.length>1?'s':''}, jusqu’au ${new Intl.DateTimeFormat('fr-FR',{dateStyle:'long',timeStyle:'short'}).format(new Date(request.expiresAt))}. Vous pouvez modifier les pièces sans changer ce lien.`;
+      followUpStatus.textContent=`Demande en cours : ${pieceCount(request.items.length)} demandée${request.items.length>1?'s':''} · ${request.maxFileSizeMB} Mo maximum par fichier · sans expiration. Vous pouvez modifier les pièces ou la limite sans changer ce lien.`;
     }else if(request?.submittedAt){followUpStatus.textContent=`Dernier complément reçu : ${pieceCount(request.received.length)} ajoutée${request.received.length>1?'s':''}, ${pieceCount(request.missing.length)} encore indisponible${request.missing.length>1?'s':''}.`}
-    else if(request){followUpStatus.textContent='Le dernier lien de complément a expiré. Vous pouvez en créer un nouveau.'}
+    else if(request){followUpStatus.textContent='Le lien de complément a été supprimé. Vous pouvez en créer un nouveau.'}
     else{followUpStatus.textContent=''}
   }
-  followUpForm.addEventListener('submit',event=>{
+  let followUpMutation=false;
+  followUpForm.addEventListener('submit',async event=>{
     event.preventDefault();
+    if(followUpMutation)return;
     if(followUpExtra.value.trim()&&!addExtraItem())return;
     const selected=[...followUpItems.querySelectorAll('input:checked')].map(input=>input.value);
-    const latest=loadInvitations().find(entry=>entry.token===invitation.token);
-    if(!latest||latest.deletedAt){followUpStatus.textContent='Ce dossier n’est plus disponible.';return}
-    if((latest.followUp?.revision||0)!==(invitation.followUp?.revision||0)||(latest.followUp?.submittedAt||0)!==(invitation.followUp?.submittedAt||0)){followUpStatus.textContent='Le dossier a changé dans un autre onglet. Actualisez cette page avant de modifier la demande.';return}
     const items=[...selected,...extraItems];
     if(!items.length){followUpStatus.textContent='Cochez au moins une pièce ou ajoutez une nouvelle pièce à demander.';return}
     if(items.length>30){followUpStatus.textContent='La limite de cette démonstration est de 30 pièces par demande.';return}
-    const now=Date.now();
-    const active=latest.followUp&&!latest.followUp.submittedAt&&latest.followUp.expiresAt>now?latest.followUp:null;
-    if(active&&JSON.stringify(active.items)===JSON.stringify(items)){followUpStatus.textContent='La demande contient déjà ces pièces. Le lien reste inchangé.';return}
-    const followUp={token:active?.token||crypto.randomUUID(),items,revision:active?active.revision+1:1,createdAt:now,expiresAt:now+7*86400000,submittedAt:0,received:[],missing:[]};
-    if(!updateInvitation(invitation.token,{followUp})){followUpStatus.textContent='Impossible de créer le lien de complément dans ce navigateur.';return}
-    invitation.followUp=followUp;renderFollowUp();
-    followUpStatus.textContent=active?'Demande mise à jour. Le lien de complément reste le même.':'Demande créée. Copiez le lien de complément pour le client.';
+    const maxFileSizeMB=fileSizeLimit(followUpSize.value);
+    const reasons=safeReasons(followUpReasons,items);
+    followUpMutation=true;followUpForm.inert=true;
+    try {
+      const result=await withInvitationLock(()=>{
+        const latest=loadInvitations().find(entry=>entry.token===invitation.token);
+        if(!latest||latest.deletedAt)throw new Error('Ce dossier n’est plus disponible.');
+        if(latest.followUp?.token!==invitation.followUp?.token||(latest.followUp?.revision||0)!==(invitation.followUp?.revision||0)||(latest.followUp?.submittedAt||0)!==(invitation.followUp?.submittedAt||0))throw new Error('Le dossier a changé dans un autre onglet. Actualisez cette page avant de modifier la demande.');
+        const active=latest.followUp&&!latest.followUp.submittedAt&&!latest.followUp.revoked?latest.followUp:null;
+        if(active&&JSON.stringify(active.items)===JSON.stringify(items)&&active.maxFileSizeMB===maxFileSizeMB&&JSON.stringify(active.reasons||{})===JSON.stringify(reasons))return {unchanged:true};
+        const followUp={token:active?.token||crypto.randomUUID(),items,reasons,maxFileSizeMB,revision:active?active.revision+1:1,createdAt:Date.now(),revoked:false,submittedAt:0,received:[],missing:[]};
+        if(!updateInvitation(invitation.token,{followUp}))throw new Error('Impossible de créer le lien de complément dans ce navigateur.');
+        return {followUp,updated:Boolean(active)};
+      });
+      if(result.unchanged){followUpStatus.textContent='La demande contient déjà ces pièces et cette limite. Le lien reste inchangé.';return}
+      invitation.followUp=result.followUp;renderFollowUp();
+      followUpStatus.textContent=result.updated?'Demande mise à jour. Le lien de complément reste le même.':'Demande créée. Copiez le lien de complément pour le client.';
+    }catch(error){followUpStatus.textContent=error.message||'Impossible d’enregistrer la demande.'}
+    finally{followUpMutation=false;followUpForm.inert=false}
   });
   followUpExtra.addEventListener('input',()=>followUpExtra.setCustomValidity(''));
   document.querySelector('#add-followup-extra').addEventListener('click',addExtraItem);
+  document.querySelector('#delete-followup-url').addEventListener('click',async event=>{
+    if(followUpMutation)return;
+    const button=event.currentTarget;followUpMutation=true;button.disabled=true;followUpForm.inert=true;
+    try {
+      const followUp=await withInvitationLock(()=>{
+        const latest=loadInvitations().find(entry=>entry.token===invitation.token);
+        if(!latest||latest.deletedAt||!latest.followUp)throw new Error('Cette demande n’est plus disponible.');
+        if(latest.followUp.token!==invitation.followUp?.token||latest.followUp.revision!==invitation.followUp?.revision||latest.followUp.submittedAt)throw new Error('La demande a changé. Actualisez cette page avant de supprimer son lien.');
+        const followUp={...latest.followUp,revoked:true,revision:latest.followUp.revision+1};
+        if(!updateInvitation(invitation.token,{followUp}))throw new Error('Impossible de supprimer ce lien dans ce navigateur.');
+        return followUp;
+      });
+      invitation.followUp=followUp;renderFollowUp();
+    }catch(error){followUpStatus.textContent=error.message||'Impossible de supprimer ce lien.'}
+    finally{followUpMutation=false;button.disabled=false;followUpForm.inert=false}
+  });
   document.querySelector('#copy-followup-url').addEventListener('click',async()=>{
     const input=document.querySelector('#followup-url');
     try{await navigator.clipboard.writeText(input.value);followUpStatus.textContent='Lien de complément copié. Aucun e-mail n’a été envoyé.'}
@@ -687,13 +804,25 @@ function initDossier(){
   checked.addEventListener('change',updateDeleteButton);
   deleteButton.addEventListener('click',()=>{document.querySelector('#case-delete-confirm').hidden=false;document.querySelector('#confirm-case-delete').focus()});
   document.querySelector('#cancel-case-delete').addEventListener('click',()=>{document.querySelector('#case-delete-confirm').hidden=true;deleteButton.focus()});
-  document.querySelector('#confirm-case-delete').addEventListener('click',()=>{
+  let deletingCase=false;
+  document.querySelector('#confirm-case-delete').addEventListener('click',async event=>{
     if(!downloadStarted||!checked.checked)return;
-    if(!updateInvitation(invitation.token,{deletedAt:Date.now(),clientName:'',items:[],received:[],missing:[],followUp:null})){document.querySelector('#download-status').textContent='Suppression impossible dans ce navigateur. Réessayez.';return}
-    deleteCaseIdentity(invitation.token);
-    showDeleted();
+    if(deletingCase)return;deletingCase=true;
+    const button=event.currentTarget;button.disabled=true;
+    try {
+      await withInvitationLock(async()=>{
+        const latest=loadInvitations().find(entry=>entry.token===invitation.token);
+        if(!latest)throw new Error('Ce dossier n’est plus disponible. Actualisez cette page.');
+        if(latest.deletedAt)return;
+        await QualityStore.deleteCase(invitation.token);
+        if(!updateInvitation(invitation.token,{deletedAt:Date.now(),clientName:'',items:[],received:[],missing:[],followUp:null}))throw new Error('Les fichiers locaux ont été effacés, mais la suppression de la fiche doit être réessayée.');
+        deleteCaseIdentity(invitation.token);
+      });
+      showDeleted();
+    }catch(error){document.querySelector('#download-status').textContent=error.message||'Impossible de supprimer les fichiers locaux. Le dossier est conservé.'}
+    finally{deletingCase=false;button.disabled=false}
   });
-  function showDeleted(){deleteCaseIdentity(invitation.token);document.querySelector('#case-heading').textContent='Dossier supprimé';document.querySelector('#case-content .case-layout').hidden=true;document.querySelector('#case-followup').hidden=true;document.querySelector('#case-download').hidden=true;document.querySelector('#case-deleted').hidden=false;document.querySelector('#case-summary').textContent='Dossier supprimé de la démonstration.';document.querySelector('#case-items').replaceChildren()}
+  function showDeleted(){deleteCaseIdentity(invitation.token);document.querySelector('#case-heading').textContent='Dossier supprimé';document.querySelector('#case-content .case-layout').hidden=true;document.querySelector('#case-followup').hidden=true;document.querySelector('#case-quality').hidden=true;document.querySelector('#case-download').hidden=true;document.querySelector('#case-deleted').hidden=false;document.querySelector('#case-summary').textContent='Dossier supprimé de la démonstration.';document.querySelector('#case-items').replaceChildren();qualityReview?.destroy()}
 }
 if(document.body.dataset.view==='lawyer')initLawyer();
 if(document.body.dataset.view==='client')initClient();

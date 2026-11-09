@@ -1,0 +1,31 @@
+Dépendances locales du contrôle de documents
+
+PDF.js / pdfjs-dist 6.5.438
+Build officiel « legacy » avec polyfills, pour compatibilité des navigateurs.
+Source : https://registry.npmjs.org/pdfjs-dist/-/pdfjs-dist-6.5.438.tgz
+Licence : Apache-2.0, incluse dans assets/vendor/pdfjs/LICENSE.
+Les licences des polices, CMaps et modules WASM accompagnent leurs fichiers.
+
+Tesseract.js 7.0.0 et tesseract.js-core 7.0.0
+Sources : registre npm officiel, paquets tesseract.js et tesseract.js-core.
+Licence : Apache-2.0. Textes et notices inclus sous assets/vendor/tesseract/.
+Les variantes standard, SIMD et relaxed SIMD sont conservées pour les navigateurs.
+
+Modèles linguistiques français et anglais
+Sources : @tesseract.js-data/fra 1.0.0 et @tesseract.js-data/eng 1.0.0,
+répertoire 4.0.0_best_int, publiés depuis https://github.com/naptha/tessdata.
+La licence amont Apache-2.0 du dépôt des modèles est incluse dans
+assets/vendor/tesseract/lang/LICENSE. Les métadonnées des paquets de distribution
+(qui déclarent MIT pour leur emballage npm) sont conservées dans *.package.json.
+
+Les intégrités SHA-512 des cinq archives ont été contrôlées avant extraction.
+Le manifeste assets/vendor/manifest.json conserve les versions, intégrités des
+archives et empreintes SHA-256 des fichiers livrés.
+
+Ces fichiers sont servis depuis le même site. L'application doit définir
+explicitement workerPath, corePath et langPath locaux pour l'OCR et les chemins
+locaux des ressources PDF.js. Aucun document n'est envoyé à ces éditeurs.
+
+Outils utilisés seulement pour générer les données de test fictives :
+@napi-rs/canvas 1.1.0 (MIT) et pdf-lib 1.17.1 (MIT), non chargés par le site.
+Le script tests/generate-quality-fixtures.cjs décrit leur installation isolée.

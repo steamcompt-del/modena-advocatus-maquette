@@ -6,8 +6,8 @@
   <meta name="robots" content="noindex,nofollow">
   <title>Préparer une demande de pièces — MODENA Advocatus</title>
   <link rel="icon" href="assets/favicon.png" type="image/png">
-  <link rel="stylesheet" href="styles.css?v=cabinet-tabs-1">
-  <script src="app.js?v=cabinet-tabs-1" defer></script>
+  <link rel="stylesheet" href="styles.css?v=mobile-2">
+  <script src="app.js?v=mobile-2" defer></script>
 </head>
 <body data-view="lawyer">
   <div class="demo-strip"><span class="demo-dot" aria-hidden="true"></span> Démonstration publique, sans connexion sécurisée · Données et fichiers fictifs uniquement</div>
@@ -55,18 +55,19 @@
         <section class="editor-section preview-section" aria-labelledby="preview-title">
           <div class="section-heading"><span class="section-number">03</span><div><p class="eyebrow">Invitation client</p><h2 id="preview-title">Créer un lien pour ce dossier.</h2></div></div>
           <div class="preview-box"><div><p class="mini-label">Demande préparée par</p><strong id="preview-lawyer">Me Lydie NAVENNEC NORMAND</strong></div><div class="preview-count"><strong id="selected-count">0</strong><span>pièces demandées<br>+ identité</span></div></div>
-          <p class="section-description">Le lien gardera une copie de cette liste et dirigera le client vers son formulaire. Si vous changez les pièces ensuite, générez un nouveau lien et révoquez l’ancien.</p>
-          <div class="invitation-controls"><label class="field" for="invitation-validity"><span>Validité du lien</span><select id="invitation-validity"><option value="3">3 jours</option><option value="7" selected>7 jours</option><option value="14">14 jours</option></select></label><button class="button-primary" type="button" id="generate-invitation">Générer un lien unique <span aria-hidden="true">→</span></button></div>
+          <p class="section-description">Le lien conserve cette liste et la taille maximale choisie. Il n’a pas de date d’expiration : vous pouvez le supprimer manuellement. Il permet un seul dépôt ; ensuite, utilisez une demande de complément.</p>
+          <div class="invitation-controls"><label class="field" for="max-file-size"><span>Taille maximale par fichier</span><select id="max-file-size" aria-describedby="max-file-size-help"><option value="5">5 Mo</option><option value="10" selected>10 Mo</option><option value="20">20 Mo</option><option value="50">50 Mo</option><option value="100">100 Mo</option></select></label><button class="button-primary" type="button" id="generate-invitation">Générer un lien unique <span aria-hidden="true">→</span></button></div>
+          <p class="field-help" id="max-file-size-help">Cette limite s’applique à chaque fichier, y compris au recto et au verso de la pièce d’identité. Pour modifier une demande déjà envoyée, créez un nouveau lien puis supprimez l’ancien.</p>
           <div class="invitation-result" id="invitation-result" hidden>
             <p class="mini-label">Lien de démonstration créé</p>
             <label class="field" for="invitation-url"><span>À copier pour le client</span><input id="invitation-url" type="text" readonly spellcheck="false"></label>
-            <p class="field-help" id="invitation-expiry"></p>
-            <div class="invitation-result__actions"><button class="button-secondary" type="button" id="copy-invitation">Copier le lien</button><a class="text-button" id="open-invitation" href="client.html">Tester le parcours client ↗</a><button class="text-button" type="button" id="revoke-invitation">Révoquer ce lien</button></div>
+            <p class="field-help" id="invitation-details"></p>
+            <div class="invitation-result__actions"><button class="button-secondary" type="button" id="copy-invitation">Copier le lien</button><a class="text-button" id="open-invitation" href="client.html">Tester le parcours client ↗</a><button class="text-button" type="button" id="revoke-invitation">Supprimer ce lien</button></div>
           </div>
           <p class="template-status" id="invitation-status" role="status" aria-live="polite"></p>
           <div class="invitation-history" id="invitation-history" hidden><h3>Liens créés pour cet avocat</h3><ul id="invitation-list"></ul></div>
           <p class="invitation-caution">Les liens de cette maquette fonctionnent uniquement dans le navigateur qui les crée. Ne les envoyez pas à de vrais clients.</p>
-          <details class="delivery-preview"><summary>Ce que l’avocat recevra après le dépôt</summary><p>Un e-mail de notification avec la référence du dossier, les informations saisies dans le formulaire, les pièces déclarées et un lien vers l’espace avocat, sans document joint. Après connexion au cabinet, l’avocat pourra télécharger un ZIP classé. Dans cette ébauche, aucun e-mail n’est envoyé.</p></details>
+          <details class="delivery-preview"><summary>Ce que l’avocat recevra après le dépôt</summary><p>Un e-mail de notification avec la référence du dossier, les informations saisies dans le formulaire, les pièces déclarées et un lien vers l’espace avocat, sans document joint. Après connexion au cabinet, l’avocat pourra télécharger un ZIP avec tous les fichiers renommés à la racine, sans sous-dossier. Dans cette ébauche, aucun e-mail n’est envoyé.</p></details>
         </section>
       </div>
     </div>
